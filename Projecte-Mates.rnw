@@ -1,0 +1,1743 @@
+\documentclass[11pt]{article}
+
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{times}
+\usepackage{appendix}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage[a4paper]{geometry}
+\usepackage{graphicx}
+\usepackage[catalan]{babel}  
+\usepackage[ansinew]{inputenc} 
+\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=black]{hyperref}
+
+\textwidth=5.9in
+\textheight=9in
+\oddsidemargin=0.1in
+\evensidemargin=0.2in
+\headheight=0.1in
+\topmargin=-.5in
+
+\newcommand{\Robject}[1]{\texttt{#1}}
+\newcommand{\Rpackage}[1]{\textsf{#1}}
+\newcommand{\Rclass}[1]{\textit{#1}}
+\newcommand{\R}{\textsf{R}}
+%\renewcommand*{\familydefault}{\sfdefault}
+
+\DeclareGraphicsRule{.pdftex}{pdf}{.pdftex}{}
+
+\begin{document}
+
+%%%   PORTADA  %%%
+
+\begin{titlepage}
+\begin{center}
+\emph{}\\ [4cm]
+\rule{\textwidth}{1.5pt}
+\huge{\textbf{Tècniques de Machine Learning per predir la resposta en la intervenció quirúrgica de la Fibril·lació Auricular}}
+\rule{\textwidth}{1.5pt} \\ [8 cm]
+\large{ROGER BORRÀS AMORAGA}\\[0.5 cm]
+\large{JOSÉ RÍOS GUILLERMO}\\ [2 cm]
+\large{Treball de Fi de Grau en Matemàtiques per la UAB} \\[0.8 cm]
+\large{Setembre 2014}
+\end{center}
+
+\end{titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{Tècniques de Machine Learning per predir la resposta en la intervenció quirúrgica de la Fibril·lació Auricular}
+\vspace{1cm}
+
+\author{
+José Ríos Guillermo\\
+\texttt{Jose.Rios@uab.cat}
+\and
+Roger Borràs Amoraga\\
+\texttt{roger.borras@gmail.com}
+}
+\date{Setembre 2014} 
+
+\SweaveOpts{concordance=TRUE}
+<<Format, echo=FALSE>>=
+options(width = 80)
+@
+
+\clearpage
+
+\maketitle
+
+\clearpage
+
+\begin{figure}
+  \centering
+    \includegraphics{logo_mates.png}
+\end{figure}
+
+\begin{figure}
+  \centering
+    \includegraphics{logo_uab.png}
+\end{figure}
+
+\clearpage
+
+\clearpage
+
+\subsection*{RESUM}
+
+\textbf{Català}\\
+
+\indent Per al treball del projecte final de grau, he escollit el tema de les tècniques de \emph{Machine Learning} (ML) i models de predicció aplicats a la recerca biomèdica. En concret, ens centrem en el tractament quirúrgic de la Fibril·lació Auricular (FA), una arítmia cardíaca originada a les aurícules del cor. L'èxit d'aquest procediment no és segur i les recurrències de FA no són infreqüents. Mitjançant l'ús de tècniques de ML, s'analitza la probabilitat d'èxit del procediment en funció de les característiques basals del pacient.\\
+
+\indent El nostre treball té tres objectius principals. En primer lloc, identificar els factors pronòstic de recurrència després d'un any de seguiment. En segon lloc, comprendre i descriure els models utilitzats per al primer objectiu. Finalment, avaluar la capacitat predictiva d'aquests models. Per abordar aquests objectius, es va dissenyar un estudi observacional, longitudinal, incloent 113 pacients sotmesos a un procediment d'ablació de la FA a la Unitat d'Arítmies de l'Hospital Clínic de Barcelona. \\
+
+\indent Els mètodes que utilitzem són, regressió logística, arbres de classificació, Random Forest, xarxes neuronals i support vector machine (SVM). Els models ajustats són molt diferents i tots tenen característiques úniques. En alguns d'ells, els paràmetres permeten una interpretació clara (com en regressió logística, arbre de classificació o en Random Forest). En altres, com les xarxes neuronals i SVM proporcionen poca informació explicativa i són difícils d'interpretar.\\
+
+\indent Es va implementar aquests models amb una sintaxi de codi \Rpackage{R}, que és força simple. Les biblioteques que utilitzem també incorporen els mètodes bàsics que són molt útils per a l'usuari.\\
+
+\indent Els nostres resultats mostren que les variables de \emph{strain} són les millors per predir l'èxit l'ablació de FA, la qual cosa demostra que els pacients amb bona contractilitat auricular tenen una major probabilitat d'èxit. \\
+
+\indent Es va estimar la capacitat de predicció de tots els models. Es va estimar que l'error de classificació de les mostres d'entrenament són entre 0\% i 16\%, mentre que per a les de validació van oscil·lar entre 11\% i 21\%. La sensibilitat, especificitat, valor predictiu positiu i negatiu van ser alts per a tots els models ajustats. La tècnica de Random Forest va ser el model que millor s'ajustava a les dades d'entrenament. La conclusió és que aquests models de predicció poden ser útils en la pràctica clínica per seleccionar els pacients amb FA a intervenir.\\
+
+
+\textbf{Castellà}\\
+
+\indent Para el trabajo del proyecto final de grado, he elegido el tema de las técnicas de Machine Learning (ML) y modelos de predicción aplicadas a la investigación biomédica. En concreto, nos centramos en el tratamiento quirúrgico de la Fibrilación Auricular (FA), una arritmia cardiaca originada en las aurículas del corazón. El éxito de este procedimiento no es seguro y las recurrencias de FA no son infrecuentes. Mediante el uso de técnicas de ML, se analiza la probabilidad de éxito del procedimiento en función de las características basales del paciente. \\
+
+\indent Nuestro proyecto tiene tres objetivos principales. En primer lugar, identificar los factores de pronóstico de recurrencia después de un año de seguimiento. En segundo lugar, comprender y describir los modelos utilizados para el primer objetivo. Finalmente, evaluar la capacidad predictiva de estos modelos. Para abordar estos objetivos, se diseñó un estudio observacional, longitudinal, incluyendo 113 pacientes sometidos a un procedimiento de ablación de la FA en la Unidad de Arritmias del Hospital Clínico de Barcelona. \\
+
+\indent Los métodos que utilizamos son, regresión logística, árboles de clasificación, Random Forest, redes neuronales y support vector machine (SVM). Los modelos ajustados son muy diferentes y todos tienen características únicas. En algunos de ellos, los parámetros se interpretan de forma clara (como en regresión logística, árbol de clasificación o en Random Forest). En otros, como las redes neuronales y SVM proporcionan poca capacidad explicativa y son difíciles de interpretar. \\
+
+\indent Se implementó estos modelos con una sintaxis de código \Rpackage{R} que es bastante simple. Las bibliotecas que utilizamos también incorporan los métodos básicos que son muy útiles para el usuario. \\
+
+\indent Nuestros resultados muestran que las variables de \emph{strain} son las mejores para predecir el éxito de la ablación de FA, lo que demuestra que los pacientes con buena contractilidad auricular tienen una mayor probabilidad de éxito. \\
+
+\indent Se estimó la capacidad de predicción de todos los modelos. Se estimó que el error de clasificación de las muestras de entrenamiento fueron entre 0\% y 16\%, mientras que para las de validación van fueron entre 11\% y 21\%. La sensibilidad, especificidad, valor predictivo positivo y negativo fueron altos para todos los modelos ajustados. La técnica de Random Forest fue el modelo que mejor se ajustaba a los datos de entrenamiento. La conclusión es que estos modelos de predicción pueden ser útiles en la práctica clínica para seleccionar los pacientes con FA operar. \\
+
+\textbf{Anglès}\\
+
+\indent For this project I chose to work in  machine learning techniques (ML) and prediction models applied to biomedical research. Specifically, we focus on the surgical therapy of atrial fibrillation (AF), a cardiac arrhythmia originated in the atria. The success of this procedure is variable and AF recurrences are not uncommon. By using ML techniques, we analyse the procedure success rate depending on patient characteristics.\\
+
+\indent Our study had three main goals. First, to identify AF recurrence prognostic factors after a one year post-ablation follow-up. Second, to understand and describe the models used for the first goal. Finally, to evaluate the predictive ability of these models. To address these objectives, we designed an observational, longitudinal study including 113 patients undergoing an AF ablation procedure in the Arrhythmia Unit of the Hospital Clinic of Barcelona. \\
+
+\indent The methods we used were logistic regression, classification trees, random forest, neural networks and support vector machine (SVM). The adjusted models are quite different in nature and all have unique characteristics. In some of them, variables are adjusted in a way that allows a clear interpretation in highly explanatory models (i.e. logistic regression, classification tree, random forest techniques). On the other hand, neural networks and SVM provide little explanatory information and are difficult to interpret.\\
+
+\indent We implemented these models with an \Rpackage{R} code syntax that was simple. The libraries we used also incorporate the basic methods which are convenient to the user.\\
+
+\indent Our results show that strain and strain-related variables are the ones better predicting AF ablation success, thus demonstrating that patients with good atrial contractility have a higher probability of a successful AF ablation procedure.\\
+
+\indent We estimated the predictive power of all the models. The training-sample classification error was estimated between 0\% and 16\%, while for the validation-sample these values ranged between 11\% and 21\%. Sensitivity, specificity, positive predictive value and negative were high for all adjusted models. The random forest technique was the model that best fitted the training data. We conclude that that these predictive models might be useful in clinical practice to select patients with AF and a high ablation success rate.  
+
+\clearpage
+
+\tableofcontents
+
+\newpage
+
+\renewcommand{\thepage} {\arabic{page}}
+
+%%% 1. Introducció %%%
+
+\section{INTRODUCCIÓ}
+
+\subsection{Motivació}
+
+\indent Per al treball del projecte final de grau, he escollit el tema de les tècniques de \emph{Machine Learning} (ML) aplicades a la recerca biomèdica. En concret, estic interessat en aprendre aquestes tècniques i implementar-les en dades biomèdiques. L'interés per aquest tema em va sorgir en les assignatures d'\emph{Anàlisi Multivariant} i \emph{Mineria de Dades}, on vàrem aprendre tècniques i conceptes \emph{d'aprenentatge supervisat} com de naturalesa \emph{no supervisat} que ja en aquell moment em van semblar molt interessants. En aquest treball, aplicarem algunes de les tècniques que vaig aprendre en aquestes assignatures i també altres de noves que he aprés per a aplicar en aquest projecte. \\
+
+\indent Com ja hem comentat, l'interès inicial per aquest tema prové de les assignatures del \emph{Grau d'Estadística Aplicada}. Però també el fet de la meva feina diària al Servei de Cardiologia de l'Hospital Clínic de Barcelona ha estat una motivació extra. Algunes de les tècniques com \emph{Anàlisi de Components Principals}, \emph{Regressió Logística} o \emph{Arbres de Classificació} entre d'altres, les faig servir sovint a la meva feina i puc comprovar amb dades reals com són de gran utilitat pràctica. Aquesta és una forta motivació per aprendre-les de forma rigurosa les ja conegudes, però també aprendre de noves que em puguin ser d'utilitat en el futur. \\
+
+\indent Per tot això, aquest projecte intenta descriure i resumir la vesant teòrica del funcionament de les tècniques d'anàlisi emprades en el present treball, realitzar la seva implementació amb el software estadístic \Rexpression{R} en dades biomèdiques reals, així com extreure conclusions clíniques dels resultats obtinguts.\\
+
+\indent El present estudi està centrat en l'àmbit de les Ciències de la Salut. Més concretament, ens centrarem en un tipus de arítmia cardíaca: la Fibril·lació Auricular (FA) i al seu tractament en un procediment quirúrgic. Les dades que treballarem han estat obtingudes a la unitat de Arítmies de l'Hospital Clínic de Barcelona, a partir d'un estudi longitudinal observacional elaborat amb 113 pacients.\\
+
+\indent L'èxit d'aquest procediment no sempre està garantit i alguns pacients recauen en arítmies posteriorment. En el present treball analitzarem la probabilitat d'aquest èxit en funció de certs paràmetres basals dels pacients a partir de tècniques de ML. Es tracta d'un tema de gran interés biomèdic, ja que estem parlant d'una operació que comporta certs riscos pel malalt i d'un gran cost econòmic, de manera que una millor selecció dels possibles candidats a intervenir és rellevant.\\
+
+\subsection{Dades i Objectius}
+
+\indent Disposem d'una base de dades amb un total de 113 pacients tractats amb la tècnica de la \emph{Ablació Circumferencial de les Venes Pulmonars Cardíaques (ACVP)} per a tractar la seva FA entre els anys 2010 i 2013 a la unitat d'arítmies continguda a la secció de cardiologia de l'Hospital Clínic de Barcelona. Els criteris d'inclusió van ser: pacients majors d'edat i refractaris a tractament farmacològic antiarítmic. La variable resposta és si el pacient ha recaigut o no en FA durant el primer any de seguiment i les variables predictores són una sèrie de mesures de caràcter clínic i ecocardiogràfic. Aquestes són les dades de que disposem per aplicar les tècniques de ML.\\
+
+\indent En aquest context, el present treball té tres objectius fonamentals:
+
+\begin{itemize}
+    \item El primer és identificar factors pronòstic en la recurrència de FA durant el primer any de seguiment després d'haver estat intervinguts quirúrgicament.
+    \item El segon objectiu d'aquest treball és el fet de descriure i entendre els models emprats per al primer objectiu, en la seva estructura, el seu funcionament i la seva interpretació.
+    \item I finalment, avaluar la capacitat predictiva d'aquests models per a la mostra de dades de que disposem.
+\end{itemize}
+
+\subsection{Agraïments}
+
+Vull agrair l'ajuda i el suport al grup d'Arítmies, Resincronització i Imatge Cardíaca de l'Institut d'Investigacions Biomèdiques August Pi i Sunyer (IDIBAPS) de l'Hospital Clínic de Barcelona i als seus responsables, al Dr. Lluís Mont i a la Dra. Marta Sitges. Vull agraïr especialment l'ajuda a la Dra. Silvia Montserrat que és qui em va facilitar les dades i vaig col·laborar en aquest projecte. La seva ajuda en la interpretació dels resultats ha esta fonamental. 
+
+\newpage
+
+%%% 2. Material i Mètodes %%%
+
+\section{MATERIAL I MÈTODES}
+
+\subsection{Marc teòric i epidemiològic}
+
+\indent El cor és un múscul buit que impulsa la sang a moure's per dins dels vasos sanguinis mitjançant un total de quatre cavitats que es mouen rítmicament (dos aurícules superiors i dos ventricles inferiors). El cor està connectat a uns conductes anomenats venes (per on arriba la sang al cor) i artèries (conductes de sortida). Les arítmies són problemes derivats del sistema elèctric del cor. En aquest context, la FA és una arítmia que afecta a les aurícules del cor i provoca un ritme cardíac irregular i ineficient, cosa que comporta greus riscos per a la salut del malalt. Les patologies que freqüentment provoca aquesta arítmia són: insuficiència cardíaca, augment del risc de patir coàguls de sang al cor (amb riscos derivats com per exemple embòlies cerebrals) així com també fatiga crònica entre altres alteracions.\\
+
+\indent A nivell epidemiològic, FA és l'arítmia cardíaca més freqüent. S'estima que la prevalença de la FA és del 2\% en la població menor de 50 anys i del 6\% en la població major a aquesta edat i s'espera que la prevalença de la enfermetat augmenti en el futur degut a l'envelliment progressiu de la població (Mont, 2007).\\ 
+
+\indent Actualment, existeixen fàrmacs per a controlar aquesta patologia, tot i que sovint presenten un eficàcia limitada. En alguns casos, es procedeix al tractament amb cirurgia en el que el pacient és sotmès a una ACVP. Aquest es tracta d'un procediment costós, d'alta tecnologia, on el que es fa és aïllar elèctricament les venes pulmonars de la resta del cor mitjançant una sèrie d'incisions per radiofreqüència (Figura 1).  
+
+\subsection{Variables de l'estudi}
+
+\indent Per a cada pacient, i de forma prèvia a la intervenció es van mesurar una sèrie de variables que poden ser factors pronòstic sobre l'èxit de la mateixa. Les variables són de caràcter clínic i ecocardiogràfic (imatge cardíaca) i les descrivim a continuació: \\
+
+\noindent \textbf{Variable Resposta associada a l'ACVP}: 
+\begin{itemize}
+    \item \emph{RECURRENCIA}: És la variable que ens identifica si el pacient ha tingut o no recurrència d'arítmies durant el primer any de seguiment, és a dir, si la operació ha estat exitosa o no. 
+\end{itemize}
+
+\noindent \textbf{Variables Predictores Clíniques:} Variables basals recollides a partir de l'exploració del pacient.
+\begin{itemize}
+  \item \emph{EDAT, PES, TALLA i BSA}: BSA és el valor de la superfície corporal del pacient.
+\end{itemize}
+
+\noindent \textbf{Variables Predictores Ecocardiogràfiques convencionals:} Variables basals recollides a partir d'imatge cardíaca convencional.
+\begin{itemize}
+  \item \emph{DAP, DAP-index, VOL-AE, VOL-AE-index, DTDVE, DTSVE, FEVE, ONA-E i ONA-A}: Les quatre primeres són mesures de l'aurícula esquerra del cor, com el seu volum, el seu diàmetre i els valors respectius indexats per el BSA. Les següents són els diàmetres dels ventricles i la fracció d'ejecció ventricular. Finalment, les dues ones són paràmetres relatius a senyals elèctriques del cor en diferents moments del cicle cardíac.
+\end{itemize}
+
+\noindent\textbf{Variables Predictores Ecocardiogràfiques de \emph{strain}:} Variables basals recollides a partir d'imatge cardíaca moderna.
+\begin{itemize}
+  \item \emph{LVGS, LASs, LASRs, LASRa, LASRe, DESPRAD, PEAKDIASP i PEAKDIASTT}: Són variables que mesuren la capacitat contràctil i la mobilitat del cor en diferents moments del cicle cardíac i en diferents direccions dels eixos.
+\end{itemize}
+
+\begin{figure}
+  \centering
+    \includegraphics[scale=0.5]{Figura_FA.png}
+\caption{Imatge de ressonància magnètica nuclear de la ACVP practicada a un pacient}
+\end{figure}
+
+\subsection{Metodologia estadística}
+
+\indent En primer lloc farem l'anàlisi descriptiu i exploratori de la base de dades mitjançant una descripció de totes les variables. L'anàlisi descriptiu es farà globalment i també tabulant en funció de la presència o no de recurrència de FA durant el primer any de seguiment. Per a la descripció de les variables, utilitzarem la mitjana, la desviació estàndard, la mediana i el rang interquartílic que són estadístics descriptius clàssics. En segon lloc, farem una representació visual de les correlacions entre les variables. En aquest apartat, també realitzarem un anàlisi de components principals (PCA) i reportarem la variabilitat explicada per les components per a la mostra.\\
+
+\indent En l'apartat de modelització de les dades, posarem en pràctica les següents tècniques: models de regressió logística, arbres de classificació, random forest, xarxes neuronals i support vector machine (SVM). Avaluarem la capacitat predictiva d'aquests models mitjançant validació creuada o crossvalidation. Aquesta validació la farem escollint a l'atzar un 70\% de la mostra per a entrenar el model i un 30\% com a mostra de validació. Per a cada model, entrenarem el model amb la mostra corresponent i farem una avaluació de la seva capacitat predictiva amb la mostra de validació mitjançant els respectius errors de classificació i també amb l'anàlisi \emph{ROC}. \\
+
+\indent A nivell de contrasts d'hipòtesi, s'utilitzarà un error de Tipus I bilateral del 5\% en els models que així ho requereixin.\\
+
+\indent Per analitzar les dades farem servir \Rexpression{R 3.1.1} per Windows (R project for Statistical Computing; Vienna, Austria). Els paquets emprats durant aquest treball són els següents: \Rpackage{foreign}, \Rpackage{Rcmdr}, \Rpackage{corrplot}, \Rpackage{FactoMineR}, \Rpackage{rms}, \Rpackage{epicalc}, \Rpackage{rpart}, \Rpackage{partykit}, \Rpackage{randomForest}, \Rpackage{nnet}, \Rpackage{kernlab} i \Rpackage{pROC} (Kleinman, 2010). \\
+
+\newpage
+
+%%% 3. Anàlisi estadística i resultats %%%
+
+\section{ANÀLISI ESTADÍSTIC I RESULTATS}
+
+Aquest és l'apartat més llarg del treball, i es composa de quatre apartats fonamentals. Primerament, farem la descripció de la mostra; en segon lloc, l'anàlisi de les correlacions entre les variables i l'anàlisi PCA per a les dades. El tercer apartat tracta de la descripció dels models i la seva implementació en \Rexpression{R}. I finalment, realitzem l'anàlisi de la capacitat predictiva dels models descrits.
+
+<<lectura_dades, echo=FALSE>>=
+#Carreguem les llibreries necessàries i llegim la base de dades
+library(foreign)
+library(corrplot)
+library(FactoMineR)
+library(rms)
+library(epicalc)
+library(rpart)
+library(partykit)
+library(randomForest)
+library(nnet)
+library(kernlab)
+library(pROC)
+
+FA <- 
+  read.spss("C:/Documents and Settings/rborras/Escritorio/6.PROJECTE/0a.PROJECTE_MATES/SWEAVE/BD_strain.sav",
+   use.value.labels=TRUE, max.value.labels=Inf, to.data.frame=TRUE)
+FA <- FA[,-1]
+FA$LASRs <- FA$LASRs*10
+#Fem la selecció a l'atzar de la mostra d'entrenament i la mostra de validació
+set.seed(123)
+mostra_entrenament <- sample(1:nrow(FA), size=nrow(FA)*0.7)
+FA_entrenament <- FA[mostra_entrenament,]
+FA_validacio <- FA[-mostra_entrenament,]
+@
+   
+\subsection{Anàlisi Descriptiu}
+
+Presentem la descripció de les dades amb tota la població, que són un total de 113 individus en la mostra:
+
+<<descripcio_mostra, echo=FALSE>>=
+#Anàlisi descriptiu de totes les variables per a la mostra total
+des_1 <- as.matrix(round(cbind(apply(FA[,-1], 2, mean), 
+                               apply(FA[,-1], 2, sd), 
+                               apply(FA[,-1], 2, median), 
+                               apply(FA[,-1], 2, IQR)),1))
+colnames(des_1) <- c("MITJANA","DE","MEDIANA","RIQ"); 
+des_1
+@
+
+Realitzem ara la descripció de les variables segons si el pacient ha recorregut o no. Reportem doncs, la descripció dels que no han recorregut, que són un total de 75 individus (el 66,4\% de la mostra):
+
+<<descripcio_no_recurrencia, echo=FALSE>>=
+#Anàlisi descriptiu per els pacients que no han recorregut
+FA_NO <- subset(FA, RECURRENCIA =='no')
+des_2 <- as.matrix(round(cbind(apply(FA_NO[,-1], 2, mean), 
+                               apply(FA_NO[,-1], 2, sd),
+                               apply(FA_NO[,-1], 2, median),
+                               apply(FA_NO[,-1], 2, IQR)),1))
+colnames(des_2) <- c("MITJANA","DE","MEDIANA","RIQ");
+des_2
+@
+
+Fem ara la descripció dels que sí que han recorregut, que són un total de 38 pacients (el 33,6\% de la mostra) :
+
+<<descripcio_recurrencia, echo=FALSE>>=
+##Anàlisi descriptiu per els pacients que han recorregut
+FA_SI <- subset(FA, RECURRENCIA =='si')
+des_3 <- as.matrix(round(cbind(apply(FA_SI[,-1], 2, mean), 
+                               apply(FA_SI[,-1], 2, sd),
+                               apply(FA_SI[,-1], 2, median),
+                               apply(FA_SI[,-1], 2, IQR)),1))
+colnames(des_3) <- c("MITJANA","DE","MEDIANA","RIQ"); 
+des_3
+#Borrem les dades generades que no farem servir posteriorment
+rm(FA_NO, FA_SI, des_1, des_2, des_3)
+@
+
+A nivell purament descriptiu, podem observar com els pacients que recorren tenen una edat més avançada. També podem veure com les variables de \emph{strain} presenten valors força diferents entre els dos grups.\\
+
+\subsection{Anàlisi de les Correlacions i Components Principals}
+
+Fem un gràfic exploratori de la matriu de correlacions entre les variables. Aquest gràfic ens pinta amb una codificació per colors el grau de correlació que hi ha entre les variables estudiades. A major correlació de les mateixes, més intensitat de color en la seva representació. Si la correlació és positiva el color és blau, i si la correlació és negativa, el color el vermellós (Figura 2).\\
+
+\begin{figure}
+\begin{center}
+<<correlacio, fig=TRUE, echo=FALSE>>=
+#Fem el plot amb les correlacions
+M <- cor(FA[,-1])
+corrplot(M)
+@
+\end{center}
+\caption{Correlació entre les variables de l'estudi}
+\end{figure}
+
+Podem observar en la figura com existeixen alguns \emph{clústers} amb correlació. Existeix correlació entre el pes, la talla i el BSA. També existeix correlació entre les variables que mesuren paràmetres de l'aurícula esquerra del cor. I finalment, és remarcable l'alta correlació que existeix entre les diverses variables de \emph{strain}.\\
+
+Ja hem vist que existeix correlació entre les variables, així que una bona idea és aplicar components principals a les dades. També és interessant la possibilitat de projectar els individus segons si han recorregut o no de la intervenció en les components per a veure visualment si existeixen diferències entre els grups. \\
+
+Per aquest anàlisi, calculem en primer lloc els valors propis de la matriu de correlacions, el percentatge de variabilitat explicada per cada component i també aquest percentatge acumulat (Farré, 2012):\\
+
+<<components_principals, echo=FALSE>>=
+#Apliquem components principals
+PCA_FA <- PCA(FA,  quali.sup=1)
+round(PCA_FA$eig,3)
+@
+
+Amb els valors dels valors propis, podem observar com amb 5 components ja expliquem el 74,4\% de la variància de les dades i amb 10 components aquest percentatge ja és superior al 90\%.\\
+
+Fem ara la representació de les variables en les quatre primeres components (Figura 3), on observem en el diagrama que la primera component principal explica el 30,1\% de la variabilitat de les dades. Podem veure com aquesta component està clarament representant les variables de \emph{Strain} novament. La segona component explica el 16,6\% de la variabilitat de les dades i podem veure que les variables BSA, TALLA i PES estan fortament representades, de manera que podem anomenar aquesta component com la component de les variables antropomètriques. Representem també les variables per a les components tres i quatre on no es veu una etiqueta clara per a aquestes components.\\
+
+\begin{figure}
+\begin{center}
+<<projeccio_variables, fig=TRUE,echo=FALSE, height=10>>=
+#Projectem les variables en les components
+par(mfrow=c(2,1))
+plot.PCA(PCA_FA, choix = "var")
+plot.PCA(PCA_FA, axes=c(3,4),choix = "var")
+par(mfrow=c(1,1))
+@
+\end{center}
+\caption{Projecció de les variables en les quatre primeres components}
+\end{figure}
+
+Projectem ara els individus sobre les components segons si els pacients han recorregut o no posteriorment a la intervenció  
+(Figura 4). En aquesta projecció dels individus, podem veure gràficament com la primera component separa bé els individus que tenen recurrència dels que no en tenen. Per tant, és un indicador clar que les variables de \emph{Strain} ens permetran distingir els pacients en els quals la intervenció serà exitosa dels que no.
+
+\begin{figure}
+\begin{center}
+<<projeccio_individus, fig=TRUE, echo=FALSE, height=10>>=
+#Projectem els individus en les components
+par(mfrow=c(2,1))
+plot.PCA(PCA_FA, habillage = 1, col.hab = c("blue", "red"))
+plot.PCA(PCA_FA, habillage = 1, axes=c(3,4) , col.hab = c("blue", "red"))
+par(mfrow=c(1,1))
+@
+\end{center}
+\caption{Projecció dels individus en les quatre primeres components segons si la intervenció ha estat exitosa. En vermell els que sí que han recorregut, i en blau els que no}
+\end{figure}
+
+\newpage 
+
+\subsection{Models estadístics}
+
+En aquest apartat el que farem serà ajustar els models comentats anteriorment. Per a cada un d'aquests models, en farem en primer lloc una descripció teòrica i posteriorment la seva implementació pràctica en \Rexpression{R}. Per a la seva implementació, escollirem una mostra training a entrenar els models i una mostra testing per a la validació dels mateixos. Calcularem l'error de classificació de cada model per a les dues mostres. Al final de la secció, es presenta la taula resum amb els errors de predicció i els anàlisi ROC per a tots els models que hem ajustat.
+
+\subsubsection{Models de Regressió Logística}
+
+\indent La regressió logística forma part dels models lineals generalitzats (Generalized Linear Models, GLM). Aquests, són models lineals que permeten transformacions sobre la variable resposta per adaptar-los a diferents situacions de modelització.\\
+
+\indent En aquest treball, farem servir la transformació \emph{logit} de la resposta, i aquest model s'anomena model de regressió logística. El model de regressió logística s'utilitza quan la variable resposta és dicotòmica (en les nostres dades, si el pacient ha recorregut o no) i es vol analitzar la seva associació amb altres variables explicatives que podrien aportar informació sobre el comportament de la resposta. És pot emprar com un mètode de classificació, ja que donades una sèrie de variables en el model, per a cada observació de la mostra, obtindrem una probabilitat de pertanyer a un valor o a l'altre de la variable resposta (Kleinbaum, 2010; Chongsuvivatwong).\\
+
+Sigui $X = (X_1, X_2, ..., X_k)$ un vector de covariables, i $Y\in\emph{\{0,1\}}$ la variable resposta que pren el valor $Y=1$ quan l'efecte d'interès és present i $Y = 0$, en cas contrari.\\
+
+\indent El model s'expressa de la forma següent:
+
+\begin{equation*}
+%Logit (Y) = log\left(\frac{P(Y)}{1-P(Y)}\right) = log (Odds(Y)) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + ... + \beta_k X_k
+log\left(\frac{P(Y)}{1-P(Y)}\right) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + ... + \beta_k X_k
+\end{equation*}
+
+La interpretació dels coeficients del model es realitza en termes d'Odds Ratio (\emph{OR}).\\
+
+\noindent Si $X_j$ és una variable dicotòmica, 
+
+\begin{equation*}
+\widehat{OR}_{X_j}(Y) = \textbf{e}^{\hat{\beta}_j}.
+\end{equation*}
+
+\noindent Mantenint la resta de variables fixades:
+
+\begin{itemize}
+  \item Si $\textbf{e}^{\hat{\beta}_j}$ > 1, direm que l'Odds és $\textbf{e}^{\hat{\beta}_j}$ vegades superior a la categoria $X_j=1$ (respecte $X_j=0$).
+  \item Si $\textbf{e}^{\hat{\beta}_j}$ = 1, no hi ha diferències entre les Odds de les categories d'$X_j$.
+  \item Si $\textbf{e}^{\hat{\beta}_j}$ < 1, direm que l'Odds és inferior al grup $X_j=1$ en un $(1 - \textbf{e}^{\hat{\beta}_j})\cdot 100\%$ respecte al grup $X_j = 0$.
+\end{itemize}
+
+\indent Si $X_j$ és una variable numèrica, un increment d'$r$ unitats d'$X_j$, mantenint la resta de variables fixades al model, provoca una estimació de l'$OR$:
+
+\begin{equation*}
+\widehat{OR}_{\Delta X_j}(Y) = \textbf{e}^{r\hat{\beta}_j}.
+\end{equation*}
+
+Que es tracta d'un valor molt interpretable clínicament i que farem servir en el present treball.\\
+
+\subsubsection{Implementació dels models de Regressió Logística en R}
+
+En aquest apartat, farem servir tres de les llibreries de \Rpackage{R}. La primera és la llibreria \Rpackage{stats} per a la funció funció \Rpackage{glm} i també farem servir la llibreria \Rpackage{rms} per a la funció \Rpackage{lrm}. Aquestes dues funcions permeten ajustar models regressió logística. I en tercer lloc, farem servir la llibreria \Rpackage{epicalc} i la seva funció \Rpackage{logistic.display} que permet obtenir els valors dels paràmetres ajustats en termes dels OR.\\ 
+
+El primer model que volem ajustar és el model amb totes les covariables de la base de dades. Ajustem el model logístic, però el model no convergeix, amb la qual cosa el model no es pot ajustar. Això pot ser degut al fet de tenir tantes variables correlacionades (multicolinealitat).\\
+
+<<model_glm, echo=FALSE, eval=FALSE>>=
+#Fem el model logístic per a totes les variables
+summary(glm(RECURRENCIA ~ . ,family=binomial, data=FA_entrenament))
+@
+
+Per a solucionar aquest problema i fer un dels possibles models, el que podem fer en primer lloc és valorar en l'anàlisi de components principals les variables que millor separen el segons la recurrència de FA. Si observem la primera component, la variables LASRs està molt representada en la primera component, i tal i com hem pogut veure en la projecció dels individus, separa molt bé entre els grups. Ajustem també el model amb la variable BSA, que és la millor representada en la segona component, tot i que tingui poc valor discriminador entre els grups.\\
+
+<<model_glm_1, echo=FALSE>>=
+#Fem el model logístic per a una selecció de variables
+logistic_entrenament_1 <- glm(RECURRENCIA ~ LASRs + BSA, 
+                              family=binomial, data=FA_entrenament)
+summary(logistic_entrenament_1)
+@
+
+Podem veure en aquesta sortida, com la variables LASRs és significativa. Per contra, la variables BSA no ho és.\\
+
+Si apliquem la funció \Rpackage{lrm} obtenim la mateixa sortida però amb la informació del model força ampliada amb paràmetres que ens donen la capacitat de discriminació.\\
+
+<<model_glm_1_lrm, echo=FALSE>>=
+#Model amb la funció lrm
+lrm(RECURRENCIA ~ LASRs + BSA, data=FA_entrenament)
+@
+
+Podem veure com l'estadístic C (o AUC) del model és 0.93, que és un valor força elevat ja que es tracta d'un model amb dues covariables. \\
+
+I si volem el resultat en funció del OR apliquem la funció \Rpackage{logistic.display}.
+
+<<model_glm_1_OR, echo=FALSE>>=
+#Sortida amb el OR
+logistic.display(logistic_entrenament_1)
+@
+
+Si interpretem el model en termes de OR, podem dir que la variable LASRs és un factor protector per a la recurrència de FA. A major valor de LASRs, el pacient experimenta una disminució de la probabilitat de recurrència. \\
+
+<<errors_logistic_1, echo=FALSE>>=
+#Calculcem la matriu de confusió i l'error de
+#predicció del model per a les dues mostres
+conf_logistic_entrenament_1 <- table(FA_entrenament$RECURRENCIA, 
+                                   (predict(logistic_entrenament_1, 
+                                    FA_entrenament, type="response")>0.5))
+error_logistic_entrenament_1 <- (1-(sum(diag(conf_logistic_entrenament_1))/
+                                   sum(conf_logistic_entrenament_1)))*100
+conf_logistic_validacio_1 <- table(FA_validacio$RECURRENCIA,
+                                 (predict(logistic_entrenament_1, 
+                                          FA_validacio, type="response")>0.5))
+error_logistic_validacio_1 <- (1-(sum(diag(conf_logistic_validacio_1))/
+                                  sum(conf_logistic_validacio_1)))*100
+@
+
+En qual a la capacitat de predicció del model, cal dir que l'error de predicció per a la mostra d'entrenament és del 15,19\% i per a la mostra de validació és del 20,59\%.\\
+
+Una altre model possible es pot obtenir aplicant un mètode automàtic de selecció de variables \emph{stepwise forward}. Això és pot obtenir amb la funció del mateix nom de la llibreria \Rpackage{Rmcdr}. Si apliquem el mètode amb selecció de variables cap endavant, obtenim el model amb les tres variables següents:
+
+<<model_stepwise_glm_2, eval=FALSE, echo=FALSE, results=hide>>=
+#Fem el model logístic per a una selecció de variables
+logistic_entrenament_2 <- stepwise(glm(RECURRENCIA ~ ., 
+                                       family=binomial, data=FA_entrenament), 
+                                       direction='forward', criterion='AIC')
+@
+
+<<model_stepwise_glm_2_resultat, echo=FALSE>>=
+#Model amb les variables seleccionades en el stepwise
+logistic_entrenament_2 <- glm(RECURRENCIA ~ 
+                              LASRs + LASs + ONA_A, 
+                              family=binomial, data=FA_entrenament)
+lrm(RECURRENCIA ~ LASRs + LASs + ONA_A, data=FA_entrenament)
+@
+
+<<errors_logistic_2, echo=FALSE>>=
+#Calculcem la matriu de confusió i l'error
+conf_logistic_entrenament_2 <- table(FA_entrenament$RECURRENCIA, 
+                                   (predict(logistic_entrenament_2, 
+                                    FA_entrenament, type="response")>0.5))
+error_logistic_entrenament_2 <- (1-(sum(diag(conf_logistic_entrenament_2))/
+                                   sum(conf_logistic_entrenament_1)))*100
+conf_logistic_validacio_2 <- table(FA_validacio$RECURRENCIA,
+                                 (predict(logistic_entrenament_2, 
+                                          FA_validacio, type="response")>0.5))
+error_logistic_validacio_2 <- (1-(sum(diag(conf_logistic_validacio_2))/
+                                  sum(conf_logistic_validacio_1)))*100
+@
+
+El model resultats és un model que conté les variables LASRs, LASs i ONA-A. Veiem que l'estadístic C del model és 0,951. També cal dir que amb aquest model, l'error de predicció per a la mostra d'entrenament és del 12,66\% i per a la mostra de validació és del 17,65\%. Notem que són uns valors millors que amb el model anterior, amb la qual cosa podem dir que es tracta d'un model amb una capacitat predictiva superior per a la mostra.
+
+\vspace{0.5cm}
+
+\subsubsection{Arbres de Classificació}
+
+\indent Els Arbres de Classificació s'utilitzen quan la variable resposta és categòrica (amb dos o més categories) i representa una classificació dels individus. El mètode consisteix en crear particions binàries recursives amb l'objectiu de classificar els individus en nodes, de tal forma que les classes observades dins un node siguin, idealment, d'un únic tipus (Venables, 2002; Valls, 2013).\\
+
+\indent El criteri per definir la partició es basa en cercar aquella partició que maximitza la puresa d'un arbre, mesurada com es defineix a continuació:\\
+
+Sigui $n_i_k$ el nombre d'observacions de tipus $k$ en el node terminal $i$. Sigui $p_i_k$ la proporció observada en el node terminal $i$ d'individus amb classe $k$. La quantitat $D_i$ mesurarà la puresa del node $i$, de tal forma que la mesura total per a un arbre serà $\sum_{i}D_i$. $D_i$ és mínim quan tots els membres d'un node són del mateix tipus, és a dir, que la puresa és màxima.\\
+
+Per determinar la puresa d'un node es poden fer servir la \emph{deviança}, l'\emph{entropia} o l'\emph{índex de Gini}, que donen lloc a arbres força similars:
+
+\begin{itemize}
+  \item Deviança:
+                  \begin{equation*}
+                  D_i = -2 \sum_{k} n_i_k log (p_i_k).
+                  \end{equation*}
+  \item Entropia:
+  
+                  \begin{equation*}
+                  D_i = -2 \sum_{k} p_i_k log (p_i_k).
+                  \end{equation*}  
+  \item Índex de Gini:
+  
+                  \begin{equation*}
+                  D_i = \sum_{k} p_i_k (1-p_i_k) = 1-\sum_{k} p_i_k^2.
+                  \end{equation*}   
+\end{itemize}
+
+Cal dir que aquests criteris de partició, en general donen lloc a arbres de classificació amb una estructura força similar.\\ 
+
+\subsubsection{Implementació dels Arbres de Classificació en R}
+
+Per a ajustar aquest model, fem servir la llibreria \Rpackage{rpart} i per a fer el \emph{summary} i el plot del model fem servir la llibreria \Rpackage{partykit} que dona uns resultats més elegants i comprensibles per a l'usuari. En l'ajust del model deixem les opcions implementades per defecte de la funció, de manera que el criteri de partició és l'índex de Gini.\\
+
+Així doncs, ajustem l'arbre de classificació amb totes les variables predictores i demanem el \emph{summary} del model:
+
+<<model_arbre, echo=FALSE>>=
+#Ajustem l'arbre per a totes les variables
+arbre_entrenament <- rpart(RECURRENCIA ~ . , data=FA_entrenament)
+#Convertim a la classe pary ja que dona millor sortida i gràfic de l'arbre
+party_ar <- as.party(arbre_entrenament) 
+@
+
+<<summary_arbre, echo=FALSE>>=
+#summary arbre
+party_ar
+@
+
+Podem veure en aquesta sortida com el model ajustat té un total tres nodes terminals. Podem veure com la variable que millor classifica en el primer node és la variable LASRs amb un valor de 10,6. Dels pacients amb un valor de la LASRs inferior a aquest valor, la variables LASs forma un nou node amb un punt de tall de 14,7. Notem que aquestes dos variables també ens han sortit en el model generat mitjançant el forward el l'ajust logístic anterior. \\
+
+Fem ara el plot del model (Figura 5). Notem que es tracta d'un model molt visual i podem veure gràficament com els valors extrems dels tres nodes, tenen una bona capacitat de classificació entre els grups, i el node intermig té un error de classificació considerable (d'un 47,1\% com podem veure en la sortida del model). \\
+
+\begin{figure}
+\begin{center}
+<<figura_arbre, fig=TRUE, echo=FALSE, height=7>>=
+#Plot de l'arbre
+plot(party_ar)
+@
+\end{center}
+\caption{Arbre de classificació per a les dades d'entrenament}
+\end{figure}
+
+<<errors_arbre, echo=FALSE>>=
+#Calculcem la matriu de confusió i l'error
+conf_arbre_entrenament <- table(FA_entrenament$RECURRENCIA,
+                    predict(arbre_entrenament, FA_entrenament, type="class"))
+error_arbre_entrenament <- (1 - (sum(diag(conf_arbre_entrenament))/
+                                   sum(conf_arbre_entrenament)))*100
+conf_arbre_validacio <- table(FA_validacio$RECURRENCIA,
+                    predict(arbre_entrenament, FA_validacio, type="class"))
+error_arbre_validacio <- (1 - (sum(diag(conf_arbre_validacio))/
+                                 sum(conf_arbre_validacio)))*100
+@
+
+Per a aquest arbre de classificació, l'error de predicció de l'arbre per a la mostra d'entrenament és del \Sexpr{round(error_arbre_entrenament, 2)} i per a la mostra de validació del \Sexpr{round(error_arbre_validacio, 2)}.
+
+\vspace{0.5cm}
+
+\subsubsection{Random Forests}
+
+El mètode exposat a continuació, és una millora respecte els arbres de classificació, ja que el resultat d'un únic arbre té alguns inconvenients:
+
+\begin{itemize}
+  \item Cada node de l'arbre és fruit d'una sèrie de divisions i per tant, les divisions posteriors estan afectades per les divisions precedents.
+  \item És poc robust, ja que petits canvis en les dades poden originar arbres molt diferents.
+  \item Per a cada divisió pot existir un conjunt de variables amb un rendiment molt similar, informació que es perd en escollir només una d'elles. 
+\end{itemize}
+
+La idea principal de Random Forest consisteix a generar multitud d'arbres diferents a partir dels quals s'estableix la classificació de les dades per votació, és a dir, cada cas es classifica segons la categoria majoritària a partir de la classificació de cada arbre (Tibshirani, 2013).\\
+
+\noindent Les principals avantatges d'aquesta metodologia són:
+
+\begin{itemize}
+  \item Proporciona una bona capacitat predictiva fins i tot quan hi ha més variables que observacions i quan la majoria de les variables són soroll.
+  \item Menys risc de sobreajustar les dades.
+  \item Proporciona un rànquing d'importància de las variables segons la seva capacitat predictiva.
+\end{itemize}
+
+\noindent La idea bàsica del Random Forest se centra en quatre punts:
+
+\begin{enumerate}
+  \item No es genera un únic arbre sinó un gran nombre d'ells.
+  \item Els arbres es construeixen a partir de molts conjunts de dades similars generades mitjançant bootstrap de la mostra original. D'aquesta forma s'aconsegueixen dues coses, primer corregir l'error de predicció a causa de la selecció específica del conjunt de dades i, segon, disposar per a cada arbre d'una mostra independent per a l'estimació de l'error de classificació, ja que aproximadament un terç de la mostra original queda exclosa de cada mostra generada per *bootstrap.
+  \item Per a cada divisió d'un node, no se selecciona la millor variable enter totes, sinó que se selecciona a l'atzar un subconjunt de variables de la grandària especificada i es restringeix la selecció de la variable a aquest subconjunt. D'aquesta forma s'inclou una major variabilitat d'arbres i es redueix la dependència del resultat amb les divisions precedents.
+  \item El Random Forest, a diferència dels arbres de classificació, no proporciona una representació gràfica de les interrelacions entre les variables, sinó que estableix un rànquing de la importància de les variables en la predicció de la variable resposta.
+\end{enumerate}
+
+El Random Forest calcula dues mesures d'importància diferents:\\
+
+La primera, denominada MDA (Mean Decrease Accuracy), es basa en la contribució de la variable a l'error de predicció, és a dir, al percentatge de mal classificats. L'error de classificació de cada arbre es calcula a partir de la part de la mostra que ha quedat exclosa de la submostra utilitzada en la construcció de l'arbre, generada per remostreig (mostra \emph{out-of-bag}). Per calcular la importància de cadascuna de les variables que apareixen en un arbre es permuten aleatòriament els valors d'aquesta variable, deixant intactes la resta de variables, i es tornen a classificar els mateixos individus segons el mateix arbre però ara amb la variable permutada. La importància en aquest arbre es calcula com l'augment en l'error de predicció resultant. Finalment es calcula la mesura MDA, com la mitjana d'aquests increments en tots els arbres on intervé la variable.\\
+
+La segona mesura d'importància, denominada MDG (Mean Decrease Gini), es calcula a partir de l'índex de Gini. Aquest és el criteri que s'utilitza per seleccionar la variable en cada partició en la construcció dels arbres i que comporta una disminució d'aquesta mesura. La importància d'una variable en un arbre es mesura com la suma dels decrements atribuïts a aquesta variable i la importància final, com la mitjana en tots els arbres.\\
+
+Presentem finalment l'algorisme pel mètode random forest (Figura 6).
+
+\begin{figure}
+  \centering
+    \includegraphics{RF_algorimte_treball.png}
+\caption{Algorisme per a la construcció d'un Random Forest}
+\end{figure}
+
+\subsubsection{Implementació de Random Forests en R}
+
+Per a implementar aquest model, farem servir la funció \Rpackage{ranfomForest} de llibreria \Rpackage{randomForest}. Els paràmetres per a la especificació del model com el nombre de mostres bootstrap, el nombre de variables predictores seleccionades en cadascuna de les particions i el nombre mínim d'individus en un node per a realitzar una nova partició els deixarem amb els valors per defecte de la funció, ja que són els valors que es recomanen per ajustar el model.\\
+
+Fem l'ajust del model amb totes les variables predictores i demanem la seva sortida:
+
+<<random_forest_entrenament, echo=FALSE>>=
+#Fem el model randomforest amb totes les variables
+set.seed(123)
+randomforest_entrenament <- randomForest(RECURRENCIA ~ . , data=FA_entrenament)
+@
+
+<<summary_random_forest, echo=FALSE>>=
+#Print del model
+randomforest_entrenament
+@
+
+Podem veure en aquesta sortida com el nombre d'arbres del bosc és 500. Cal destacar que la sortida del model ens proporciona la matriu de confusió així com també l'error de predicció de les mostres \emph{out-of-bag}.\\
+
+Fem el llistat de les variables per ordre d'importància: 
+
+<<importancia_randomforest, echo=FALSE>>=
+#MEsura d'importància de les variables
+importancia <- importance(randomforest_entrenament)
+noms <- names(importancia[,1])
+importancia <- as.vector(importancia)
+names(importancia) <- noms
+importancia[c(order(importancia, decreasing=TRUE))]
+@
+
+En aquesta llista, les variables que surten millor representades en capacitat de predicció són la variable LASs i la LASRs, cosa que quadra força amb l'arbre de classificació presentat anteriorment.\\
+
+Fem el plot de la importància de cada variable segons la seva capacitat predictiva que dona el model (Figura 7). Aquests representació que permet la llibrera és molt útil per a explorar la capacitat predictiva de les variables, sobretot quan en tens un gran nombre d'elles per explorar. Amb aquest plot es pot apreciar clarament com les variables de \emph{strain} són les que tenen una capacita predictiva superior. \\
+ 
+\begin{figure}
+\begin{center}
+<<plot_random_forest, fig=TRUE, echo=FALSE>>=
+par(mfrow=c(1,1))
+#Fem el plot de la importància de les variables
+varImpPlot(randomforest_entrenament, main="Mostra d'entrenament")
+par(mfrow=c(1,1))
+@
+\end{center}
+\caption{MeanDecreaseGini per a les dades d'entrenament}
+\end{figure}
+
+<<errors_randomforest, echo=FALSE>>=
+#Calculcem la matriu de confusió i l'error
+conf_randomforest_entrenament <- table(FA_entrenament$RECURRENCIA,
+                    predict(randomforest_entrenament, FA_entrenament, type="class"))
+error_randomforest_entrenament <- (1 - (sum(diag(conf_randomforest_entrenament))/
+                                     sum(conf_randomforest_entrenament)))*100
+
+conf_randomforest_validacio <- table(FA_validacio$RECURRENCIA,
+                    predict(randomforest_entrenament, FA_validacio, type="class"))
+error_randomforest_validacio <- (1 - (sum(diag(conf_randomforest_validacio))/
+                                        sum(conf_randomforest_validacio)))*100
+@
+
+En aquest cas, l'error de predicció per a la mostra d'entrenament és del \Sexpr{round(error_randomforest_entrenament, 2)}\% i per a la mostra de validació és del \Sexpr{round(error_arbre_validacio, 2)}\%.
+
+\newpage
+
+\vspace{0.5cm}
+
+\subsubsection{Xarxes Neuronals}
+
+\indent Les xarxes neuronals extreuen combinacions lineals de les variables explicatives (que formen en conjunt, la capa d'entrada \emph{input layers}) i, aleshores, modelen la resposta (o les respostes, \emph{output layers}) a partir de funcions no necessàriament lineals de les combinacions lineals. Adicionalment, s'hi poden afegir unes capes intermitges/ocultes anomenades \emph{hidden layers} (Valls, 2013).\\
+
+\indent El model per a la xarxa neuronal amb una capa oculta per a resposta categòrica ($k$ classe) s'expressa de la forma següent:
+
+\begin{equation*}
+y_k = \phi_{0} \left( \alpha_{k} + \sum_{h} w_h_k \phi_{h} \left( \alpha_{h} + \sum_{i} w_i_h x_i \right)\right)
+\end{equation*}
+on, 
+
+\begin{itemize}
+  \item $y_k$ i $x_i$: variables resposta i explicatives (outputs i inputs) respectivament.
+  \item $\alpha_{h} + \sum_{i} w_i_h x_i$ : combinació lineal dels inputs.
+  \item $\phi_{h}$: Funció d'activació (habitualment la logística per a la resposta dicotòmica).
+  \item $\alpha_{k}$ + \sum_{h} w_h_k$: combinació lineal de les capes ocultes.
+  \item $w_i_h$ i $w_h_k$ : pesos (paràmetres a ajustar), habitualment s'utilitzen mètodes numèrics per estimar-los, intentant minimitzar el valor òptim per tal de reduir l'error de predicció.
+  
+\end{itemize}
+
+\indent Les xarxes neuronals poden ser molt més complexes, es poden incorporar salts de capa i més d'una capa oculta tot i que en el present treball ajustarem una xarxa "senzilla".\\
+
+
+\subsubsection{Implementació de les Xarxes Neuronals en R}
+
+Per a implementar la xarxa neuronal, farem servir la funció \Rpackage{nnet} de llibreria amb el mateix nom. Per a la especificació del model, establirem una xarxa senzilla on el nombre d'unitats de la capa oculta sigui igual a dos. Per al resta de paràmetres per a la especificació del model, deixarem els valors per defecte que té la funció. I per tal d'ajustar la millor xarxa neuronal, el que farem és simular 100 xarxes i ens quedarem amb aquella que permeti un millor ajust per a les nostres dades. Això ho fem degut al tema de la optimització numèrica que requereix el model.\\ 
+
+<<xarxa_entrenament, results=hide, echo=FALSE>>=
+#Ajustem el model mitjançant la simulació
+xarxa_entrenament <- nnet(RECURRENCIA ~ ., 
+                          data=FA_entrenament, size=2)
+millor.RSS <- xarxa_entrenament$value
+RSS <- NULL
+for(i in 1:100){
+    aux.nnet <- nnet(RECURRENCIA ~ ., 
+                     data=FA_entrenament, size=2)
+    RSS[i] <- aux.nnet$value
+    if(aux.nnet$value < millor.RSS)
+      {
+        xarxa_entrenament <- aux.nnet
+        millor.RSS <- xarxa_entrenament$value
+     } 
+}
+conf_xarxa_entrenament <- table(FA_entrenament$RECURRENCIA,
+                    predict(xarxa_entrenament, FA_entrenament, type="class"))
+error_xarxa_entrenament <- (1 - (sum(diag(conf_xarxa_entrenament))/
+                                     sum(conf_xarxa_entrenament)))*100
+
+conf_xarxa_validacio <- table(FA_validacio$RECURRENCIA,
+                    predict(xarxa_entrenament, FA_validacio, type="class"))
+error_xarxa_validacio <- (1 - (sum(diag(conf_xarxa_validacio))/
+                                 sum(conf_xarxa_validacio)))*100
+error_xarxa_entrenament
+error_xarxa_validacio
+@
+
+Si demanem la sortida del model poden veure la seva estructura.
+
+<<sortida_xarxa_entrenament, echo=FALSE>>=
+#Print de la xarxa
+print(xarxa_entrenament)
+@
+
+Veiem que es tracta d'una xarxa amb una estructura 21-2-1, que és la que hem especificat. També podem veure que aquest model té un total de 47 pesos. Si mirem els pesos calculats pel model, veiem que una interpretació dels mateixos és força difícil.
+
+<<pesos_xarxa_entrenament, eval=FALSE, echo=FALSE>>=
+#Coeficients de la xarxa
+coefficients(xarxa_entrenament)
+@
+
+<<errors_xarxa, echo=FALSE>>=
+#Calculcem la matriu de confusió i l'error de la xarxa
+conf_xarxa_entrenament <- table(FA_entrenament$RECURRENCIA,
+                    predict(xarxa_entrenament, FA_entrenament, type="class"))
+error_xarxa_entrenament <- (1 - (sum(diag(conf_xarxa_entrenament))/
+                                     sum(conf_xarxa_entrenament)))*100
+
+conf_xarxa_validacio <- table(FA_validacio$RECURRENCIA,
+                    predict(xarxa_entrenament, FA_validacio, type="class"))
+error_xarxa_validacio <- (1 - (sum(diag(conf_xarxa_validacio))/
+                                 sum(conf_xarxa_validacio)))*100
+@
+
+Per altra banda, l'error de predicció calculat per a aquest la xarxa neuronal per la mostra d'entrenament és del 3,80\% i per a la mostra de validació és del 11,76\%. 
+
+\vspace{0.5cm}
+
+\subsubsection{Support Vector Machines}
+
+\indent El mètode Support Vector Machines (SVM) és un mètode de classificació supervisada en que l'objectiu és determinar la frontera òptima entre dos grups o més (Tibshirani, 2013; Karatzoglou, 2004). \\
+
+En el cas més simple, el cas linealment separable, existeix una distància positiva entre tots dos grups. Així, és possible determinar l'hiperplà que maximitza la distància de cadascun dels grups amb el mateix. En el cas més complex, el cas no separable linealment, els grups se superposen espacialment sent impossible la separació per mitjà d'un hiperplà. SVM crea una transformació no lineal de l'espai en un altre de molta major dimensió en el qual, per efecte de l'augment de dimensió i la no linealitat de la transformació, els dos grups així transformats poden ser separats com en el primer cas per un hiperplà. La transformació inversa deforma aquest hiperplà en una frontera no lineal que separa els dos grups en l'espai original. \\
+
+La transformació que separa perfectament tots dos grups no només conté la informació que distingeix als grups, sinó que també conté el soroll de les dades. Una manera d'aconseguir que la frontera separi només la informació rellevant (sense sobreajustar pel soroll de les dades), és tolerar que alguns punts quedin mal assignats a un grup. Per a això s'introdueixen variables de folga que quantifiquen la distància d'un punt mal classificat a la frontera de separació. Des d'una perspectiva matemàtica, tots dos problemes es formulen com a problemes de programació quadràtica i només es necessita conèixer el producte intern dels punts transformats que, com a funció de les dades originals, es denomina \emph{funció kernel}. \\
+
+\noindent A continuació exposarem breument el cas linealment separable.\\
+
+Sigui $(x_1,y_1),...,(x_n,y_n)$ una mostra de dos grups separables per un hiperplà on les $x_i$ són el conjunt de coordenades espacials de cada observació i $y_i$ agafa els valors ${1,-1}$ en funció del grup al qual pertany. L'equació de l'hiperplà que separa els grups té la forma:
+
+\begin{equation*}
+\phi(x) = \beta'x+b_0
+\end{equation*}
+
+on $\beta$ és un vector normal a l'hiperplà i, per conveniència, suposem que té norma 1. Els coeficients $\beta$ i $b_0$ s'agafen de manera que es maximitzi el marge \emph{M} que mesura la distància de l'hiperplà al punt més proper de cada grup. Aquest plantejament correspon a un problema de programació quadràtica ja que és té una funció objectiu quadràtica amb restriccions lineals:
+
+\begin{equation*}
+\max_{\beta,b_0}M
+\end{equation*}
+
+subjecte a:
+
+\begin{equation*}
+\|\beta \| = 1 
+\end{equation*}
+\begin{equation*}
+y_i(\beta'^{x_i} + b_0) \geq M \text{ para i = 1,...,n} 
+\end{equation*}
+
+Així, el vector $\beta$ indica el grup $y_i=1$ i l'expressió $y_i(\beta'^{x_i} + b_0)$ mesura la distància de la i-èsima observació a l'hiperplà. \\
+
+
+\subsubsection{Implementació dels Support Vector Machines en R}
+
+Per a implementar aquest model, farem servir la funció \Rpackage{ksvm} de llibreria \Rpackage{kernlab}. Deixem els valors que té la funció per defecte per a ajustar el model i demanem que ens calculi per probabilitats predites.\\
+
+Ajustem la tècnica SVM per a totes les dades i demanem la sortida.
+
+<<svm_entrenament, echo=FALSE>>=
+#Ajustem SVM amb totes les variables
+SVM_entrenament <- ksvm(RECURRENCIA ~ ., prob.model=TRUE, data = FA_entrenament)
+@
+
+<<print_svm_entrenament, echo=FALSE>>=
+#Print del model
+print(SVM_entrenament)
+@
+
+Veiem com el model defineix un total de 50 support vectors per a classificar amb un kernel gaussià. Es tracta d'un model poc explicatiu i s'ha d'emprar amb finalitats predictives cercant un bon ajust per a les dades.\\
+
+<<errors_svm, echo=FALSE>>=
+#Calculcem la matriu de confusió i l'error de la xarxa
+conf_SVM_entrenament <- table(FA_entrenament$RECURRENCIA,
+                    predict(SVM_entrenament, FA_entrenament, type="response"))
+error_SVM_entrenament <- (1 - (sum(diag(conf_SVM_entrenament))/
+                                     sum(conf_SVM_entrenament)))*100
+conf_SVM_validacio <- table(FA_validacio$RECURRENCIA,
+                    predict(SVM_entrenament, FA_validacio, type="response"))
+error_SVM_validacio<-(1-(sum(diag(conf_SVM_validacio))/sum(conf_SVM_validacio)))*100
+@
+
+Comentar també que l'error de predicció per a la mostra d'entrenament amb SVM és de 5,06\% i per a la mostra de validació és de 14,71\%.
+
+\newpage
+
+\subsection{Avaluació de la capacitat predictiva dels diferents models}
+
+\subsubsection{Errors de classificació}
+
+Ja hem comentat els errors de predicció dels models que hem ajustat i ara en presentem una taula resum. Per a cada tipus de model, reportem els error de predicció per la mostra dues mostres així com els errors de predicció basals (Taula 1). Considerem l'error de predicció basal la categoria amb menor freqüència de la variable resposta, és a dir, el percentatge dels que no recorren en cada mostra.
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{lrrrrr}
+  \hline
+        & Basal Ent.  & Mostra Ent. & Basal Val.  & Mostra Val. \\ 
+  \hline
+      Model Logístic I      & 32,91\% &   15,19\%   & 35,29\% &  20,59\%  \\
+      Model Logístic II     & 32,91\% &   12,66\%   & 35,29\% &  17,65\%  \\
+      Arbre de Classificació &  32,91\% &   12,66\%   & 35,29\% &  20,59\%  \\
+      Random Forest & 32,91\% &\Sexpr{round(error_randomforest_entrenament,2)}\% & 35,29\%  &\Sexpr{round(error_randomforest_validacio,2)}\% \\
+      Xarxa Neuronal  & 32,91\%  & 3,80\%   & 35,29\%  & 11,76\% \\
+      SVM              &  32,91\%  &    5,06\%   & 35,29\%  & 14,71\%  \\
+\hline\end{tabular}
+\caption{Errors de classificació per als diversos models predictius}
+\end{center}
+\end{table}
+
+En aquesta taula podem observar com ell errors de predicció per a tots els models per a la mostra d'entrenament estan entre el 0\%  i el 16\%, cosa que ens indica que els errors de predicció són força diferents segons el model ajustat. Per a la mostra de validació, podem veure com els errors de predicció augmenten força i es situen entre el 11 i el 21\%. Tots aquests errors són inferiors als errors basals que tenen les dues mostres, de manera que podem dir que aquests model ens permeten una reducció de la incertesa de cara a predir la recurrència de FA. Els tres primers models que corresponen a models logístics i arbres de classificació, tenen un errors de predicció per a la mostra d'entrenament força superiors al model ajustat amb random forest, la xarxa neuronal i SVM. També cal destacar, que random forest té un error de predicció del 0\% en la mostra d'entrenament, cosa força destacable. Un patró similar, tot i potser no igual de clar el podem veure en la mostra de validació. Podem veure en aquesta columna que tres dels models ajustat presenten el mateix error de predicció per a la mostra de validació, un 20,59\%. \\
+
+\subsubsection{Anàlisi ROC}
+
+En aquest apartat farem un anàlisi més fi sobre l'ajust d'aquests models per a les dades. Per a cada model, el que fem és calcular la probabilitat de recurrència que prediu per a cada individu, cosa que ens dona un valor continu per a cada model que permet avaluar la seva capacitat predictiva així com també el càlcul de la probabilitat òptima de predicció per a cada model. Això ho farem per a la mostra d'entrenament, i veurem el comportament d'aquests valors en la mostra de validació (Taules 2 i 3). \\ 
+
+<<prediccio_probabilitat, echo=FALSE>>=
+#Calculcem les probabilitats prediuen els diferents models
+#Model Logístic 1
+FA_entrenament$prediccio_logistic_1 <- predict(logistic_entrenament_1, 
+                                             FA_entrenament, type="response")
+FA_validacio$prediccio_logistic_1 <- predict(logistic_entrenament_1, 
+                                           FA_validacio, type="response")
+#Model Logístic 2
+FA_entrenament$prediccio_logistic_2 <- predict(logistic_entrenament_2, 
+                                             FA_entrenament, type="response")
+FA_validacio$prediccio_logistic_2 <- predict(logistic_entrenament_2, 
+                                           FA_validacio, type="response")
+#Predicció de l'arbre
+FA_entrenament$prediccio_arbre <- predict(arbre_entrenament, 
+                                          FA_entrenament, type = c("prob"))
+FA_validacio$prediccio_arbre <- predict(arbre_entrenament, 
+                                        FA_validacio, type = c("prob"))
+#Random Forest
+FA_entrenament$prediccio_randomforest <- predict(randomforest_entrenament, 
+                                                 FA_entrenament, type="prob")
+FA_validacio$prediccio_randomforest <- predict(randomforest_entrenament, 
+                                               FA_validacio, type="prob")
+#Xarxa
+FA_entrenament$prediccio_xarxa <- predict(xarxa_entrenament, 
+                                          FA_entrenament, type="raw")
+FA_validacio$prediccio_xarxa <- predict(xarxa_entrenament, 
+                                        FA_validacio, type="raw")
+#SVM
+FA_entrenament$prediccio_SVM <- predict(SVM_entrenament, FA_entrenament, 
+                                        type="probabilities")
+FA_validacio$prediccio_SVM <- predict(SVM_entrenament, FA_validacio, 
+                                      type="probabilities")
+@
+
+<<df_roc, echo=FALSE>>=
+#Creem les dades per l'anàlisi de les ROC
+ROC_entrenament <- data.frame(RECUR=FA_entrenament$RECURRENCIA, 
+                              REGRESSIO_LOGISTICA_1=
+                                FA_entrenament$prediccio_logistic_1,
+                              REGRESSIO_LOGISTICA_2=
+                                FA_entrenament$prediccio_logistic_2,
+                              ARBRE_CLASSIFICACIO=FA_entrenament$prediccio_arbre[,2],
+                              RANDOM_FOREST=FA_entrenament$prediccio_randomforest[,2],
+                              XARXA_NEURONAL=FA_entrenament$prediccio_xarxa,
+                              SVM=as.numeric(FA_entrenament$prediccio_SVM[,2]))
+  
+ROC_validacio <- data.frame(RECUR=FA_validacio$RECURRENCIA, 
+                              REGRESSIO_LOGISTICA_1=
+                                FA_validacio$prediccio_logistic_1,
+                              REGRESSIO_LOGISTICA_2=
+                                FA_validacio$prediccio_logistic_2,
+                              ARBRE_CLASSIFICACIO=FA_validacio$prediccio_arbre[,2],
+                              RANDOM_FOREST=FA_validacio$prediccio_randomforest[,2],
+                              XARXA_NEURONAL=FA_validacio$prediccio_xarxa,
+                              SVM=as.numeric(FA_validacio$prediccio_SVM[,2]))
+@
+
+                            
+<<valors_roc, echo=FALSE, results=hide>>=
+#Calculem els valors ROC per reportar per a la mostra d'entrenament
+#RL 1
+pROC_entrenament_RL_1 <- roc(ROC_entrenament$RECUR~
+                               ROC_entrenament$REGRESSIO_LOGISTICA_1,
+                               levels=c("no", "si"))
+auc(pROC_entrenament_RL_1); ci.auc(pROC_entrenament_RL_1) 
+coords(pROC_entrenament_RL_1, "best", 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#RL 2
+pROC_entrenament_RL_2 <- roc(ROC_entrenament$RECUR~
+                               ROC_entrenament$REGRESSIO_LOGISTICA_2,
+                               levels=c("no", "si"))
+auc(pROC_entrenament_RL_2); ci.auc(pROC_entrenament_RL_2) 
+coords(pROC_entrenament_RL_2, "best", 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#AC
+pROC_entrenament_AC <- roc(ROC_entrenament$RECUR~ROC_entrenament$ARBRE_CLASSIFICACIO,
+                           levels=c("no", "si"))
+auc(pROC_entrenament_AC); ci.auc(pROC_entrenament_AC) 
+coords(pROC_entrenament_AC, "best", 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#RF
+pROC_entrenament_RF <- roc(ROC_entrenament$RECUR~ROC_entrenament$RANDOM_FOREST,
+                           levels=c("no", "si"))
+auc(pROC_entrenament_RF); ci.auc(pROC_entrenament_RF)
+coords(pROC_entrenament_RF, "best", 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#XN
+pROC_entrenament_XN <- roc(ROC_entrenament$RECUR~ROC_entrenament$XARXA_NEURONAL,
+                           levels=c("no", "si"))
+auc(pROC_entrenament_XN); ci.auc(pROC_entrenament_XN)
+coords(pROC_entrenament_XN, "best", 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#SVM
+pROC_entrenament_SVM <- roc(ROC_entrenament$RECUR~ROC_entrenament$SVM,
+                           levels=c("no", "si"))
+auc(pROC_entrenament_SVM); ci.auc(pROC_entrenament_SVM)
+coords(pROC_entrenament_SVM, "best", 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#Calculem els valors de cada model per a la mostra de validació
+#RL 1
+pROC_validacio_RL_1 <- roc(ROC_validacio$RECUR~ROC_validacio$REGRESSIO_LOGISTICA_1,
+                           levels=c("no", "si"))
+auc(pROC_validacio_RL_1); ci.auc(pROC_validacio_RL_1)
+coords(pROC_validacio_RL_1, 0.2687924, 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#RL 2
+pROC_validacio_RL_2 <- roc(ROC_validacio$RECUR~ROC_validacio$REGRESSIO_LOGISTICA_2,
+                           levels=c("no", "si"))
+auc(pROC_validacio_RL_2); ci.auc(pROC_validacio_RL_2)
+coords(pROC_validacio_RL_2, 0.1322436, 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#AC
+pROC_validacio_AC <- roc(ROC_validacio$RECUR~ROC_validacio$ARBRE_CLASSIFICACIO,
+                           levels=c("no", "si"))
+auc(pROC_validacio_AC); ci.auc(pROC_validacio_AC) 
+coords(pROC_validacio_AC, 0.2570332, 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#RF
+pROC_validacio_RF <- roc(ROC_validacio$RECUR~ROC_validacio$RANDOM_FOREST,
+                           levels=c("no", "si"))
+auc(pROC_validacio_RF); ci.auc(pROC_validacio_RF)
+coords(pROC_validacio_RF, 0.4600000, 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#XN
+pROC_validacio_XN <- roc(ROC_validacio$RECUR~ROC_validacio$XARXA_NEURONAL,
+                           levels=c("no", "si"))
+auc(pROC_validacio_XN); ci.auc(pROC_validacio_XN)
+coords(pROC_validacio_XN, 0.4725396, 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#SVM
+pROC_validacio_SVM <- roc(ROC_validacio$RECUR~ROC_validacio$SVM,
+                           levels=c("no", "si"))
+auc(pROC_validacio_SVM); ci.auc(pROC_validacio_SVM)
+coords(pROC_validacio_SVM, 0.4488659, 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+@
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{lrrrrrr}
+  \hline
+        & AUC  & Prob. & Sens. & Esp. & VPP & VPN   \\ 
+  \hline
+      Model Logístic I & 0,93 (0,88-0,98) & 0,2687924 & 92,3\% & 83,0\% & 72,7\% & 95,7\% \\
+      Model Logístic II & 0,95 (0,91-0,99) & 0,1322436 & 100\% & 77,4\% & 68,4\% & 100\% \\
+      Arbre de Classificació & 0.93 (0.87-0.99) & 0,2570332 & 92,3\% & 83,0\% & 72,7\% & 95,6\% \\
+      Random Forest       &  1 (1-1) &  0,4600000 & 100\% & 100\%  & 100\%  & 100\% \\
+      Xarxa Neuronal  &  0,96 (0,91-1,00) &  0.4725396 & 96,2\% &  96,2\% &  92,6\% & 98,1\% \\
+      SVM      & 0,99 (0,96-1,00) & 0.4488659 & 96,2\% & 98,1\% & 96,2\% & 98,1\% \\
+\hline\end{tabular}
+\caption{Valors ROC per a la mostra d'entrenament}
+\end{center}
+\end{table}
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{lrrrrrr}
+  \hline
+        & AUC  & Sensibilitat & Especificitat & VPP & VPN   \\ 
+  \hline
+      Model Logístic I & 0,91 (0,79-1,00)  & 83,3\% & 86,4\% & 76,9\% & 90,5\% \\
+      Model Logístic II & 0,96 (0,91-1,00)  & 91,7\% & 100\% & 100\% & 95,7\% \\
+      Arbre de Classificació & 0,84 (0,69-0,98) & 75,0\% & 86,4\% & 75,0\% & 86,4\% \\
+      Random Forest & 0,87 (0,72-1,00)  & 58,3\% &  90,9\% &  77,8\% & 80,0\%  \\
+      Xarxa Neuronal &  0,83 (0,70-0,97) & 66,7\%  &  100\% &  100\% & 84,6\%  \\
+      SVM      & 0.90 (0.74-1.00)  & 83,3\% & 90,1\% & 83,3\% & 90,1\% \\
+\hline\end{tabular}
+\caption{Valors ROC per a la mostra de validació}
+\end{center}
+\end{table}
+
+El que podem observar a primera vista és que les probabilitats òptimes calculades són diferents segons el model. En general, els valors calculats per a les dades de validació són pitjors que per a les dades d'entrenament, cosa que és força lògica. Per altra banda, podem dir que els models ajusten molt bé a les dades ja que totes les AUC són altes i són properes al valor 1. Els valors de sensibilitat, especificitat, valor predictiu positiu i negatiu també són alts per a tots els models ajustats. El model que millor ajusta a les dades d'entrenament, és el que generem la tècnica Random Forest, que te una AUC de 1 per a la mostra d'entrenament tot i que per la mostra de validació aquesta AUC és de 0.87. Notem també que per al model logístic II, la AUC per a la mostra de validació és major al de la mostra d'entrenament i també cal remarcar que és el model que millor ajusta les dades de validació. \\
+
+A nivell de la pràctica clínica, hem de pensar que estem parlant de models predictius que serveixen com a valor pronòstic d'una operació que té un certs riscos. Així, que és interessant escollir models que tinguin un alt valor de especificitat i de valor predictiu negatiu, ja que això ens dona moltes garanties que ens permetrà escollir pacients als quals la intervenció serà un èxit, per exemple el model ajustat amb random forest pot ser de una gran utilitat a la pràctica clínica.  \\
+
+Presentem finalment aquest apartat les corbes ROC calculades per a cada model i per a cada mostra, on podem veure que tots els models ajustats tenen un AUC molt alta, de manera que tots els models són útils a la pràctica  (Figura 8).
+
+\begin{figure}
+\begin{center}
+<<plots_roc, fig=TRUE, echo=FALSE, results=hide, height=9>>=
+#Plot de les corbes ROC per a tots els models
+par(mfrow=c(6,2))
+plot(pROC_entrenament_RL_1, col="blue", 
+     main="Regressio Logistica I", 
+     xlab="", ylab="Sensibilitat")
+plot(pROC_entrenament_RL_2, col="blue", 
+     main="Regressio Logistica II", 
+     xlab="", ylab="")
+plot(pROC_entrenament_AC, col="blue", 
+     main="Arbre de Classificacio", xlab="", 
+     ylab="Sensibilitat")
+plot(pROC_entrenament_RF, col="blue", 
+     main="Random Forest", 
+     xlab="", ylab="")
+plot(pROC_entrenament_XN, col="blue", 
+     main="Xarxa Neuronal", xlab="", 
+     ylab="Sensibilitat")
+plot(pROC_entrenament_SVM, col="blue", 
+     main="SVM", xlab="", 
+     ylab="Sensibilitat")
+plot(pROC_validacio_RL_1, col="red", 
+     main="Regressio Logistica I", xlab="", ylab="")
+plot(pROC_validacio_RL_2, col="red", 
+     main="Regressio Logistica II", xlab="", 
+     ylab="Sensibilitat")
+plot(pROC_validacio_AC, col="red", 
+     main="Arbre de Classificacio", xlab="", ylab="")
+plot(pROC_validacio_RF, col="red", 
+     main="Random Forest", 
+     xlab="Especificitat", ylab="Sensibilitat")
+plot(pROC_validacio_XN, col="red", 
+     main="Xarxa Neuronal", 
+     xlab="Especificitat", ylab="")
+plot(pROC_validacio_SVM, col="red", 
+     main="SVM", 
+     xlab="Especificitat", ylab="")
+par(mfrow=c(1,1))
+@
+\end{center}
+\caption{Corbes ROC per a les diverses prediccions dels models. En color blau les mostres d'entrenament, i en color vermell les de validació}
+\end{figure}
+
+\newpage
+
+%%% 4. Conclusions %%%
+
+\section{CONCLUSIONS}
+
+\indent Hem volgut saber quines variables ens permetien predir l'èxit de la ACVP i hem pogut ajustar uns models que ens permeten assolir aquest objectiu. Hem creat varis models predictius que permeten discriminar a priori si els pacients recauran o no en FA. \\
+
+Els models ajustats són d'una naturalesa força diferent i tots tenen característiques peculiars. Alguns d'ells, l'ajust dels seus paràmetres ens permeten donar una interpretació clara dels resultats, són models molt explicatius. En aquest grup, hi podem posar la regressió logística i la seva interpretació dels paràmetres en termes de OR. L'arbre de classificació, potser és el model més explicatiu i més fàcil d'entendre per un usuari profà. Aquest model ens ha definit que la millor variable predictora en la nostra mostra és la variables LASRs, amb un punt de tall de 10,6. La tècnica Random Forest també és força explicativa i pot ser molt útil quan es té una gran quantitat de variables per analitzar. La tècnica ens ha confirmat que les millors variables per predir l'èxit de la intervenció són les variables de \emph{strain}. Per altra banda, els models ajustats mitjançant una xarxa neuronal o mitjançant SVM són models poc explicatius i els paràmetres ajustats són difícils d'interpretar. \\
+
+Hem comentat diverses vegades que les variables de strain \emph{strain} són bones predictores de recurrència. A nivell d'interpretació biomèdica, podem dir que els pacients amb bona mobilitat auricular (bons valors de les variables de \emph{strain}) tenen una probabilitat superior de tenir una intervenció exitosa. Aquests resultats tenen molt de sentit clínic, ja que els pacients amb poca mobilitat auricular tenen més risc de patir circuits de reentrada elèctrics en el sistema de conducció del seu cor. En canvi, la bona mobilitat auricular els predisposa a una bona conducció elèctrica en el cor i, per tant, a no patir recurrències de Fibril·lació Auricular.\\
+
+Pel que respecta a la capacitat de predicció dels models, cal dir que en la mostra d'entrenament els errors de predicció es situen entre el 0\%  i el 16\%, és a dir, força diferents segons el model. Per a la mostra de validació els valors es situen entre el 11 i el 21\%. Tots aquests errors són inferiors als errors basals que tenen les dues mostres, de manera que podem dir que aquests model ens permeten una reducció de la incertesa de cara a predir la recurrència de FA. Cal destacar que la tècnica random forest té un error de predicció del 0\% en la mostra d'entrenament. Per altra banda, els valors de sensibilitat, especificitat, valor predictiu positiu i negatiu també són alts per a tots els models ajustats. El model que millor ajusta a les dades d'entrenament, és el que generem la tècnica Random Forest, que te una AUC de 1 per a la mostra d'entrenament tot i que per la mostra de validació aquesta AUC és de 0.87. El model logístic II és el que millor ajusta les dades de validació. Amb tot això, podem afirmar que aquests model predictius són útils a la pràctica clínica per decidir quins pacients s'han d'intervenir i quins no. Tot i aquests bons resultats, com a limitació i precaució del treball, cal dir que per a validar aquests resultats cal fer una validació externa amb una mostra de dades independent amb mesures recollides en un altre centre. Una validació externa és fonamental per donar una validesa robusta aquests models. \\
+
+Pel que respecta a la implementació del codi en \Rpackage{R}, s'ha de dir que és força senzilla. La sintaxi que es requereix per a ajustar els diferents models és molt similar i és la típica del llenguatge, així com també els mètodes clàssics de \Rpackage{R} com el \Rpackage{plot} o el \Rpackage{summary}. Cal destacar que per a calcular la classe que ens prediu el model, així com també computar les probabilitats predites és també senzill degut a que totes les llibreries emprades disposen del mètode \Rpackage{predict}. Aquest mètode és de gran utilitat per a calcular, per exemple, les matrius de confusió dels models i poder calcular els errors de predicció. Al ser \Rpackage{R} un llenguatge orientat a objectes, tot aquest tipus de càlculs són molt naturals per a l'usuari.\\
+
+\clearpage
+
+
+%%% 5. Annex %%%
+
+\section{ANNEX}
+
+\subsection {Sessió emprada}
+
+<<sessio_R>>=
+sessionInfo()
+@
+
+\subsection {Codi R del treball}
+
+<<eval=FALSE>>=
+### R code from vignette source 'Projecte_GRAU'
+### Encoding: ISO8859-1
+
+###################################################
+### code chunk number 1: Format
+###################################################
+options(width = 80)
+
+
+###################################################
+### code chunk number 2: lectura_dades
+###################################################
+#Carreguem les llibreries necessàries i llegim la base de dades
+library(foreign)
+library(Rcmdr)
+library(corrplot)
+library(FactoMineR)
+library(rms)
+library(epicalc)
+library(rpart)
+library(partykit)
+library(randomForest)
+library(nnet)
+library(kernlab)
+library(pROC)
+
+FA <- read.spss("C:/Users/RWJE/Desktop/0a.PROJECTE_2/SWEAVE/BD_strain.sav",
+   use.value.labels=TRUE, max.value.labels=Inf, to.data.frame=TRUE)
+FA <- FA[,-1]
+FA$LASRs <- FA$LASRs*10
+#Fem la selecció a l'atzar de la mostra d'entrenament i la mostra de validació
+set.seed(123)
+mostra_entrenament <- sample(1:nrow(FA), size=nrow(FA)*0.7)
+FA_entrenament <- FA[mostra_entrenament,]
+FA_validacio <- FA[-mostra_entrenament,]
+
+
+###################################################
+### code chunk number 3: descripcio_mostra
+###################################################
+#Anàlisi descriptiu de totes les variables per a la mostra total
+des_1 <- as.matrix(round(cbind(apply(FA[,-1], 2, mean), 
+                               apply(FA[,-1], 2, sd), 
+                               apply(FA[,-1], 2, median), 
+                               apply(FA[,-1], 2, IQR)),1))
+colnames(des_1) <- c("MITJANA","DE","MEDIANA","RIQ"); 
+des_1
+
+
+###################################################
+### code chunk number 4: descripcio_no_recurrencia
+###################################################
+#Anàlisi descriptiu per els pacients que no han recorregut
+FA_NO <- subset(FA, RECURRENCIA =='no')
+des_2 <- as.matrix(round(cbind(apply(FA_NO[,-1], 2, mean), 
+                               apply(FA_NO[,-1], 2, sd),
+                               apply(FA_NO[,-1], 2, median),
+                               apply(FA_NO[,-1], 2, IQR)),1))
+colnames(des_2) <- c("MITJANA","DE","MEDIANA","RIQ");
+des_2
+
+
+###################################################
+### code chunk number 5: descripcio_recurrencia
+###################################################
+##Anàlisi descriptiu per els pacients que han recorregut
+FA_SI <- subset(FA, RECURRENCIA =='si')
+des_3 <- as.matrix(round(cbind(apply(FA_SI[,-1], 2, mean), 
+                               apply(FA_SI[,-1], 2, sd),
+                               apply(FA_SI[,-1], 2, median),
+                               apply(FA_SI[,-1], 2, IQR)),1))
+colnames(des_3) <- c("MITJANA","DE","MEDIANA","RIQ"); 
+des_3
+#Borrem les dades generades que no farem servir posteriorment
+rm(FA_NO, FA_SI, des_1, des_2, des_3)
+
+
+###################################################
+### code chunk number 6: correlacio
+###################################################
+#Fem el plot amb les correlacions
+M <- cor(FA[,-1])
+corrplot(M)
+
+
+###################################################
+### code chunk number 7: components_principals
+###################################################
+#Apliquem components principals
+PCA_FA <- PCA(FA,  quali.sup=1)
+round(PCA_FA$eig,3)
+
+
+###################################################
+### code chunk number 8: projeccio_variables
+###################################################
+#Projectem les variables en les components
+par(mfrow=c(2,1))
+plot.PCA(PCA_FA, choix = "var")
+plot.PCA(PCA_FA, axes=c(3,4),choix = "var")
+par(mfrow=c(1,1))
+
+
+###################################################
+### code chunk number 9: projeccio_individus
+###################################################
+#Projectem els individus en les components
+par(mfrow=c(2,1))
+plot.PCA(PCA_FA, habillage = 1, col.hab = c("blue", "red"))
+plot.PCA(PCA_FA, habillage = 1, axes=c(3,4) , col.hab = c("blue", "red"))
+par(mfrow=c(1,1))
+
+
+###################################################
+### code chunk number 10: model_glm (eval = FALSE)
+###################################################
+## #Fem el model logístic per a totes les variables
+## summary(glm(RECURRENCIA ~ . ,family=binomial, data=FA_entrenament))
+
+
+###################################################
+### code chunk number 11: model_glm_1
+###################################################
+#Fem el model logístic per a una selecció de variables
+logistic_entrenament_1 <- glm(RECURRENCIA ~ LASRs + BSA, 
+                              family=binomial, data=FA_entrenament)
+summary(logistic_entrenament_1)
+
+
+###################################################
+### code chunk number 12: model_glm_1_lrm
+###################################################
+#Model amb la funció lrm
+lrm(RECURRENCIA ~ LASRs + BSA, data=FA_entrenament)
+
+
+###################################################
+### code chunk number 13: model_glm_1_OR
+###################################################
+#Sortida amb el OR
+logistic.display(logistic_entrenament_1)
+
+
+###################################################
+### code chunk number 14: errors_logistic_1
+###################################################
+#Calculcem la matriu de confusió i l'error de
+#predicció del model per a les dues mostres
+conf_logistic_entrenament_1 <- table(FA_entrenament$RECURRENCIA, 
+                                   (predict(logistic_entrenament_1, 
+                                    FA_entrenament, type="response")>0.5))
+error_logistic_entrenament_1 <- (1-(sum(diag(conf_logistic_entrenament_1))/
+                                   sum(conf_logistic_entrenament_1)))*100
+conf_logistic_validacio_1 <- table(FA_validacio$RECURRENCIA,
+                                 (predict(logistic_entrenament_1, 
+                                          FA_validacio, type="response")>0.5))
+error_logistic_validacio_1 <- (1-(sum(diag(conf_logistic_validacio_1))/
+                                  sum(conf_logistic_validacio_1)))*100
+
+
+###################################################
+### code chunk number 15: model_stepwise_glm_2 (eval = FALSE)
+###################################################
+## #Fem el model logístic per a una selecció de variables
+## logistic_entrenament_2 <- stepwise(glm(RECURRENCIA ~ ., 
+##                                        family=binomial, data=FA_entrenament), 
+##                                        direction='forward', criterion='AIC')
+
+
+###################################################
+### code chunk number 16: model_stepwise_glm_2_resultat
+###################################################
+#Model amb les variables seleccionades en el stepwise
+logistic_entrenament_2 <- glm(RECURRENCIA ~ 
+                              LASRs + LASs + ONA_A, 
+                              family=binomial, data=FA_entrenament)
+lrm(RECURRENCIA ~ LASRs + LASs + ONA_A, data=FA_entrenament)
+
+
+###################################################
+### code chunk number 17: errors_logistic_2
+###################################################
+#Calculcem la matriu de confusió i l'error
+conf_logistic_entrenament_2 <- table(FA_entrenament$RECURRENCIA, 
+                                   (predict(logistic_entrenament_2, 
+                                    FA_entrenament, type="response")>0.5))
+error_logistic_entrenament_2 <- (1-(sum(diag(conf_logistic_entrenament_2))/
+                                   sum(conf_logistic_entrenament_1)))*100
+conf_logistic_validacio_2 <- table(FA_validacio$RECURRENCIA,
+                                 (predict(logistic_entrenament_2, 
+                                          FA_validacio, type="response")>0.5))
+error_logistic_validacio_2 <- (1-(sum(diag(conf_logistic_validacio_2))/
+                                  sum(conf_logistic_validacio_1)))*100
+
+
+###################################################
+### code chunk number 18: model_arbre
+###################################################
+#Ajustem l'arbre per a totes les variables
+arbre_entrenament <- rpart(RECURRENCIA ~ . , data=FA_entrenament)
+#Convertim a la classe pary ja que dona millor sortida i gràfic de l'arbre
+party_ar <- as.party(arbre_entrenament) 
+
+
+###################################################
+### code chunk number 19: summary_arbre
+###################################################
+#summary arbre
+party_ar
+
+
+###################################################
+### code chunk number 20: figura_arbre
+###################################################
+#Plot de l'arbre
+plot(party_ar)
+
+
+###################################################
+### code chunk number 21: errors_arbre
+###################################################
+#Calculcem la matriu de confusió i l'error
+conf_arbre_entrenament <- table(FA_entrenament$RECURRENCIA,
+                    predict(arbre_entrenament, FA_entrenament, type="class"))
+error_arbre_entrenament <- (1 - (sum(diag(conf_arbre_entrenament))/
+                                   sum(conf_arbre_entrenament)))*100
+conf_arbre_validacio <- table(FA_validacio$RECURRENCIA,
+                    predict(arbre_entrenament, FA_validacio, type="class"))
+error_arbre_validacio <- (1 - (sum(diag(conf_arbre_validacio))/
+                                 sum(conf_arbre_validacio)))*100
+
+
+###################################################
+### code chunk number 22: random_forest_entrenament
+###################################################
+#Fem el model randomforest amb totes les variables
+set.seed(123)
+randomforest_entrenament <- randomForest(RECURRENCIA ~ . , data=FA_entrenament)
+
+
+###################################################
+### code chunk number 23: summary_random_forest
+###################################################
+#Print del model
+randomforest_entrenament
+
+
+###################################################
+### code chunk number 24: importancia_randomforest
+###################################################
+#MEsura d'importància de les variables
+importancia <- importance(randomforest_entrenament)
+noms <- names(importancia[,1])
+importancia <- as.vector(importancia)
+names(importancia) <- noms
+importancia[c(order(importancia, decreasing=TRUE))]
+
+
+###################################################
+### code chunk number 25: plot_random_forest
+###################################################
+par(mfrow=c(1,1))
+#Fem el plot de la importància de les variables
+varImpPlot(randomforest_entrenament, main="Mostra d'entrenament")
+par(mfrow=c(1,1))
+
+
+###################################################
+### code chunk number 26: errors_randomforest
+###################################################
+#Calculcem la matriu de confusió i l'error
+conf_randomforest_entrenament <- table(FA_entrenament$RECURRENCIA,
+                    predict(randomforest_entrenament, FA_entrenament, type="class"))
+error_randomforest_entrenament <- (1 - (sum(diag(conf_randomforest_entrenament))/
+                                     sum(conf_randomforest_entrenament)))*100
+
+conf_randomforest_validacio <- table(FA_validacio$RECURRENCIA,
+                    predict(randomforest_entrenament, FA_validacio, type="class"))
+error_randomforest_validacio <- (1 - (sum(diag(conf_randomforest_validacio))/
+                                        sum(conf_randomforest_validacio)))*100
+
+
+###################################################
+### code chunk number 27: xarxa_entrenament
+###################################################
+#Ajustem el model mitjançant la simulació
+xarxa_entrenament <- nnet(RECURRENCIA ~ ., 
+                          data=FA_entrenament, size=2)
+millor.RSS <- xarxa_entrenament$value
+RSS <- NULL
+for(i in 1:100){
+    aux.nnet <- nnet(RECURRENCIA ~ ., 
+                     data=FA_entrenament, size=2)
+    RSS[i] <- aux.nnet$value
+    if(aux.nnet$value < millor.RSS)
+      {
+        xarxa_entrenament <- aux.nnet
+        millor.RSS <- xarxa_entrenament$value
+     } 
+}
+conf_xarxa_entrenament <- table(FA_entrenament$RECURRENCIA,
+                    predict(xarxa_entrenament, FA_entrenament, type="class"))
+error_xarxa_entrenament <- (1 - (sum(diag(conf_xarxa_entrenament))/
+                                     sum(conf_xarxa_entrenament)))*100
+
+conf_xarxa_validacio <- table(FA_validacio$RECURRENCIA,
+                    predict(xarxa_entrenament, FA_validacio, type="class"))
+error_xarxa_validacio <- (1 - (sum(diag(conf_xarxa_validacio))/
+                                 sum(conf_xarxa_validacio)))*100
+error_xarxa_entrenament
+error_xarxa_validacio
+
+
+###################################################
+### code chunk number 28: sortida_xarxa_entrenament
+###################################################
+#Print de la xarxa
+print(xarxa_entrenament)
+
+
+###################################################
+### code chunk number 29: pesos_xarxa_entrenament (eval = FALSE)
+###################################################
+## #Coeficients de la xarxa
+## coefficients(xarxa_entrenament)
+
+
+###################################################
+### code chunk number 30: errors_xarxa
+###################################################
+#Calculcem la matriu de confusió i l'error de la xarxa
+conf_xarxa_entrenament <- table(FA_entrenament$RECURRENCIA,
+                    predict(xarxa_entrenament, FA_entrenament, type="class"))
+error_xarxa_entrenament <- (1 - (sum(diag(conf_xarxa_entrenament))/
+                                     sum(conf_xarxa_entrenament)))*100
+
+conf_xarxa_validacio <- table(FA_validacio$RECURRENCIA,
+                    predict(xarxa_entrenament, FA_validacio, type="class"))
+error_xarxa_validacio <- (1 - (sum(diag(conf_xarxa_validacio))/
+                                 sum(conf_xarxa_validacio)))*100
+
+
+###################################################
+### code chunk number 31: svm_entrenament
+###################################################
+#Ajustem SVM amb totes les variables
+SVM_entrenament <- ksvm(RECURRENCIA ~ ., prob.model=TRUE, data = FA_entrenament)
+
+
+###################################################
+### code chunk number 32: print_svm_entrenament
+###################################################
+#Print del model
+print(SVM_entrenament)
+
+
+###################################################
+### code chunk number 33: errors_svm
+###################################################
+#Calculcem la matriu de confusió i l'error de la xarxa
+conf_SVM_entrenament <- table(FA_entrenament$RECURRENCIA,
+                    predict(SVM_entrenament, FA_entrenament, type="response"))
+error_SVM_entrenament <- (1 - (sum(diag(conf_SVM_entrenament))/
+                                     sum(conf_SVM_entrenament)))*100
+conf_SVM_validacio <- table(FA_validacio$RECURRENCIA,
+                    predict(SVM_entrenament, FA_validacio, type="response"))
+error_SVM_validacio<-(1-(sum(diag(conf_SVM_validacio))/sum(conf_SVM_validacio)))*100
+
+
+###################################################
+### code chunk number 34: prediccio_probabilitat
+###################################################
+#Calculcem les probabilitats prediuen els diferents models
+#Model Logístic 1
+FA_entrenament$prediccio_logistic_1 <- predict(logistic_entrenament_1, 
+                                             FA_entrenament, type="response")
+FA_validacio$prediccio_logistic_1 <- predict(logistic_entrenament_1, 
+                                           FA_validacio, type="response")
+#Model Logístic 2
+FA_entrenament$prediccio_logistic_2 <- predict(logistic_entrenament_2, 
+                                             FA_entrenament, type="response")
+FA_validacio$prediccio_logistic_2 <- predict(logistic_entrenament_2, 
+                                           FA_validacio, type="response")
+#Predicció de l'arbre
+FA_entrenament$prediccio_arbre <- predict(arbre_entrenament, 
+                                          FA_entrenament, type = c("prob"))
+FA_validacio$prediccio_arbre <- predict(arbre_entrenament, 
+                                        FA_validacio, type = c("prob"))
+#Random Forest
+FA_entrenament$prediccio_randomforest <- predict(randomforest_entrenament, 
+                                                 FA_entrenament, type="prob")
+FA_validacio$prediccio_randomforest <- predict(randomforest_entrenament, 
+                                               FA_validacio, type="prob")
+#Xarxa
+FA_entrenament$prediccio_xarxa <- predict(xarxa_entrenament, 
+                                          FA_entrenament, type="raw")
+FA_validacio$prediccio_xarxa <- predict(xarxa_entrenament, 
+                                        FA_validacio, type="raw")
+#SVM
+FA_entrenament$prediccio_SVM <- predict(SVM_entrenament, FA_entrenament, 
+                                        type="probabilities")
+FA_validacio$prediccio_SVM <- predict(SVM_entrenament, FA_validacio, 
+                                      type="probabilities")
+
+
+###################################################
+### code chunk number 35: df_roc
+###################################################
+#Creem les dades per l'anàlisi de les ROC
+ROC_entrenament <- data.frame(RECUR=FA_entrenament$RECURRENCIA, 
+                              REGRESSIO_LOGISTICA_1=
+                                FA_entrenament$prediccio_logistic_1,
+                              REGRESSIO_LOGISTICA_2=
+                                FA_entrenament$prediccio_logistic_2,
+                              ARBRE_CLASSIFICACIO=FA_entrenament$prediccio_arbre[,2],
+                              RANDOM_FOREST=FA_entrenament$prediccio_randomforest[,2],
+                              XARXA_NEURONAL=FA_entrenament$prediccio_xarxa,
+                              SVM=as.numeric(FA_entrenament$prediccio_SVM[,2]))
+  
+ROC_validacio <- data.frame(RECUR=FA_validacio$RECURRENCIA, 
+                              REGRESSIO_LOGISTICA_1=
+                                FA_validacio$prediccio_logistic_1,
+                              REGRESSIO_LOGISTICA_2=
+                                FA_validacio$prediccio_logistic_2,
+                              ARBRE_CLASSIFICACIO=FA_validacio$prediccio_arbre[,2],
+                              RANDOM_FOREST=FA_validacio$prediccio_randomforest[,2],
+                              XARXA_NEURONAL=FA_validacio$prediccio_xarxa,
+                              SVM=as.numeric(FA_validacio$prediccio_SVM[,2]))
+
+
+###################################################
+### code chunk number 36: valors_roc
+###################################################
+#Calculem els valors ROC per reportar per a la mostra d'entrenament
+#RL 1
+pROC_entrenament_RL_1 <- roc(ROC_entrenament$RECUR~
+                               ROC_entrenament$REGRESSIO_LOGISTICA_1,
+                               levels=c("no", "si"))
+auc(pROC_entrenament_RL_1); ci.auc(pROC_entrenament_RL_1) 
+coords(pROC_entrenament_RL_1, "best", 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#RL 2
+pROC_entrenament_RL_2 <- roc(ROC_entrenament$RECUR~
+                               ROC_entrenament$REGRESSIO_LOGISTICA_2,
+                               levels=c("no", "si"))
+auc(pROC_entrenament_RL_2); ci.auc(pROC_entrenament_RL_2) 
+coords(pROC_entrenament_RL_2, "best", 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#AC
+pROC_entrenament_AC <- roc(ROC_entrenament$RECUR~ROC_entrenament$ARBRE_CLASSIFICACIO,
+                           levels=c("no", "si"))
+auc(pROC_entrenament_AC); ci.auc(pROC_entrenament_AC) 
+coords(pROC_entrenament_AC, "best", 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#RF
+pROC_entrenament_RF <- roc(ROC_entrenament$RECUR~ROC_entrenament$RANDOM_FOREST,
+                           levels=c("no", "si"))
+auc(pROC_entrenament_RF); ci.auc(pROC_entrenament_RF)
+coords(pROC_entrenament_RF, "best", 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#XN
+pROC_entrenament_XN <- roc(ROC_entrenament$RECUR~ROC_entrenament$XARXA_NEURONAL,
+                           levels=c("no", "si"))
+auc(pROC_entrenament_XN); ci.auc(pROC_entrenament_XN)
+coords(pROC_entrenament_XN, "best", 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#SVM
+pROC_entrenament_SVM <- roc(ROC_entrenament$RECUR~ROC_entrenament$SVM,
+                           levels=c("no", "si"))
+auc(pROC_entrenament_SVM); ci.auc(pROC_entrenament_SVM)
+coords(pROC_entrenament_SVM, "best", 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#Calculem els valors de cada model per a la mostra de validació
+#RL 1
+pROC_validacio_RL_1 <- roc(ROC_validacio$RECUR~ROC_validacio$REGRESSIO_LOGISTICA_1,
+                           levels=c("no", "si"))
+auc(pROC_validacio_RL_1); ci.auc(pROC_validacio_RL_1)
+coords(pROC_validacio_RL_1, 0.2687924, 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#RL 2
+pROC_validacio_RL_2 <- roc(ROC_validacio$RECUR~ROC_validacio$REGRESSIO_LOGISTICA_2,
+                           levels=c("no", "si"))
+auc(pROC_validacio_RL_2); ci.auc(pROC_validacio_RL_2)
+coords(pROC_validacio_RL_2, 0.1322436, 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#AC
+pROC_validacio_AC <- roc(ROC_validacio$RECUR~ROC_validacio$ARBRE_CLASSIFICACIO,
+                           levels=c("no", "si"))
+auc(pROC_validacio_AC); ci.auc(pROC_validacio_AC) 
+coords(pROC_validacio_AC, 0.2570332, 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#RF
+pROC_validacio_RF <- roc(ROC_validacio$RECUR~ROC_validacio$RANDOM_FOREST,
+                           levels=c("no", "si"))
+auc(pROC_validacio_RF); ci.auc(pROC_validacio_RF)
+coords(pROC_validacio_RF, 0.4600000, 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#XN
+pROC_validacio_XN <- roc(ROC_validacio$RECUR~ROC_validacio$XARXA_NEURONAL,
+                           levels=c("no", "si"))
+auc(pROC_validacio_XN); ci.auc(pROC_validacio_XN)
+coords(pROC_validacio_XN, 0.4725396, 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+#SVM
+pROC_validacio_SVM <- roc(ROC_validacio$RECUR~ROC_validacio$SVM,
+                           levels=c("no", "si"))
+auc(pROC_validacio_SVM); ci.auc(pROC_validacio_SVM)
+coords(pROC_validacio_SVM, 0.4488659, 
+       ret=c("threshold", "sens", "spec", "ppv", "npv"))
+
+
+###################################################
+### code chunk number 37: plots_roc
+###################################################
+#Plot de les corbes ROC per a tots els models
+par(mfrow=c(6,2))
+plot(pROC_entrenament_RL_1, col="blue", 
+     main="Regressio Logistica I", 
+     xlab="", ylab="Sensibilitat")
+plot(pROC_entrenament_RL_2, col="blue", 
+     main="Regressio Logistica II", 
+     xlab="", ylab="")
+plot(pROC_entrenament_AC, col="blue", 
+     main="Arbre de Classificacio", xlab="", 
+     ylab="Sensibilitat")
+plot(pROC_entrenament_RF, col="blue", 
+     main="Random Forest", 
+     xlab="", ylab="")
+plot(pROC_entrenament_XN, col="blue", 
+     main="Xarxa Neuronal", xlab="", 
+     ylab="Sensibilitat")
+plot(pROC_entrenament_SVM, col="blue", 
+     main="SVM", xlab="", 
+     ylab="Sensibilitat")
+plot(pROC_validacio_RL_1, col="red", 
+     main="Regressio Logistica I", xlab="", ylab="")
+plot(pROC_validacio_RL_2, col="red", 
+     main="Regressio Logistica II", xlab="", 
+     ylab="Sensibilitat")
+plot(pROC_validacio_AC, col="red", 
+     main="Arbre de Classificacio", xlab="", ylab="")
+plot(pROC_validacio_RF, col="red", 
+     main="Random Forest", 
+     xlab="Especificitat", ylab="Sensibilitat")
+plot(pROC_validacio_XN, col="red", 
+     main="Xarxa Neuronal", 
+     xlab="Especificitat", ylab="")
+plot(pROC_validacio_SVM, col="red", 
+     main="SVM", 
+     xlab="Especificitat", ylab="")
+par(mfrow=c(1,1))
+
+
+###################################################
+### code chunk number 38: sessio_R
+###################################################
+sessionInfo()
+@
+
+\newpage
+
+\addcontentsline{toc}{section}{Bibliografia}
+
+\newpage
+
+\begin{thebibliography}{99}
+\vspace{0.2cm}
+
+\bibitem{} Mont, L.; Villacastín, J. \emph{Fibrilación Auricular: Avances en fisiopatología y tratamiento}, Marge Medial Books (2007).
+
+\bibitem{} Kleinman, K.; Horton, N. \emph{SAS and R Data Management, Statistical Analysis and graphics}, CRC Press (2010).
+
+\bibitem{} Farré, Mercè \emph{Anàlisi Multivariant (apunts de curs)} del \emph{Grau d'Estadística Aplicada} de la \emph{Universitat Autònoma de Barcelona}. 2012.
+
+\bibitem{} Kleinbaum, D.; Klein, M. \emph{Logistic Regression} Third Edition, Springer, New York (2013).
+
+\bibitem{} Chongsuvivatwong, Virasakdi \emph{Analysis of epidemiological data using R and Epicalc Epidemiology} Prince of Songkla University (Thailand).
+
+\bibitem{} Venables W.; Ripley B. \emph{Modern Applied Statistics with S-PLUS}. Springer, New York (2002).
+
+\bibitem{} Tibshirani, R.; Hastie, T.; Witten, D.; Gareth, J. \emph{An Introduction to Statistal Learning} Springer, New York (2013).
+
+\bibitem{} Valls, Joan \emph{Mineria de dades (apunts de curs)} del \emph{Grau d'Estadística Aplicada} de la \emph{Universitat Autònoma de Barcelona}. 2013.
+
+\bibitem{} Karatzoglou, A.; Smola, A.; Hornik, K. \emph{An S4 Package for Kernel Methods in R} Journal of Statistical Software (2004).
+
+\bibitem{R} R Core Team. \emph{R: A Language and Environment for Statistical Computing}. url: http://www.R-project.org/, Vienna, Austria (2014).
+  
+\end{thebibliography}
+
+\end{document}
+
+%setwd("C:/Users/RWJE/Desktop/0a.PROJECTE_2/SWEAVE")
+%Stangle("Projecte_GRAU_2")
+
+1151/5
