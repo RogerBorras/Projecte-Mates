@@ -1739,5 +1739,3 @@ sessionInfo()
 
 %setwd("C:/Users/RWJE/Desktop/0a.PROJECTE_2/SWEAVE")
 %Stangle("Projecte_GRAU_2")
-
-1151/
